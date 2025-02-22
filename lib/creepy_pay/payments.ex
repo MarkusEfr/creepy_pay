@@ -1,34 +1,45 @@
 defmodule CreepyPay.Payments do
-  @table :payments
+  use Memento.Table,
+    attributes: [:payment_id, :amount, :status],
+    type: :set
+
+  @table __MODULE__
+
+  def setup do
+    nodes = [node()]
+
+    Memento.stop()
+    Memento.Schema.create(nodes)  # Creates schema
+    Memento.start()
+
+    case Memento.Table.create(@table, disc_copies: nodes) do
+      :ok -> IO.puts("✅ Mnesia table #{@table} created successfully")
+      {:error, {:already_exists, _}} -> IO.puts("⚠️ Mnesia table #{@table} already exists")
+      _ -> IO.puts("❌ Mnesia setup failed:")
+    end
+  end
 
   def store_payment(payment_id, amount, status) do
-    :mnesia.transaction(fn ->
-      :mnesia.write({@table, payment_id, amount, status})
-    end)
+    Memento.transaction! fn ->
+      Memento.Query.write(%@table{payment_id: payment_id, amount: amount, status: status})
+    end
   end
 
   def get_payment(payment_id) do
-    :mnesia.transaction(fn ->
-      case :mnesia.read({@table, payment_id}) do
-        [] -> {:error, "Payment not found"}
-        [{@table, _id, amount, status}] -> {:ok, %{amount: amount, status: status}}
+    Memento.transaction! fn ->
+      case Memento.Query.read(@table, payment_id) do
+        nil -> {:error, "Payment not found"}
+        record -> {:ok, record}
       end
-    end)
+    end
   end
 
   def update_payment_status(payment_id, new_status) do
-    :mnesia.transaction(fn ->
-      case :mnesia.read({@table, payment_id}) do
-        [] -> {:error, "Payment not found"}
-        [{@table, _id, amount, _old_status}] ->
-          :mnesia.write({@table, payment_id, amount, new_status})
+    Memento.transaction! fn ->
+      case Memento.Query.read(@table, payment_id) do
+        nil -> {:error, "Payment not found"}
+        record -> Memento.Query.write(%{record | status: new_status})
       end
-    end)
-  end
-
-  def delete_payment(payment_id) do
-    :mnesia.transaction(fn ->
-      :mnesia.delete({@table, payment_id})
-    end)
+    end
   end
 end

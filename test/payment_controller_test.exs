@@ -9,18 +9,30 @@ defmodule CreepyPayWeb.PaymentControllerTest do
   describe "POST /api/payment" do
     test "creates a stealth address", %{conn: conn} do
       conn = post(conn, "/api/payment", %{"recipient" => @valid_recipient})
-      assert %{"payment_id" => _, "stealth_address" => _, "payment_link" => _} = json_response(conn, 200)
+
+      assert %{"payment_id" => _, "stealth_address" => _, "payment_link" => _} =
+               json_response(conn, 200)
     end
   end
 
   describe "POST /api/payment/pay" do
     test "processes a valid payment", %{conn: conn} do
-      conn = post(conn, "/api/payment/pay", %{"payment_id" => @valid_payment_id, "amount_wei" => "1000000000000000000"})
+      conn =
+        post(conn, "/api/payment/pay", %{
+          "payment_id" => @valid_payment_id,
+          "amount_wei" => "1000000000000000000"
+        })
+
       assert %{"status" => "payment_sent"} = json_response(conn, 200)
     end
 
     test "fails on invalid amount", %{conn: conn} do
-      conn = post(conn, "/api/payment/pay", %{"payment_id" => @valid_payment_id, "amount_wei" => "invalid_amount"})
+      conn =
+        post(conn, "/api/payment/pay", %{
+          "payment_id" => @valid_payment_id,
+          "amount_wei" => "invalid_amount"
+        })
+
       assert %{"status" => "failed"} = json_response(conn, 400)
     end
   end
@@ -40,12 +52,24 @@ defmodule CreepyPayWeb.PaymentControllerTest do
 
   describe "POST /api/payment/claim" do
     test "claims funds with valid signature", %{conn: conn} do
-      conn = post(conn, "/api/payment/claim", %{"payment_id" => @valid_payment_id, "recipient" => @valid_recipient, "signature" => @valid_signature})
+      conn =
+        post(conn, "/api/payment/claim", %{
+          "payment_id" => @valid_payment_id,
+          "recipient" => @valid_recipient,
+          "signature" => @valid_signature
+        })
+
       assert %{"status" => "claimed"} = json_response(conn, 200)
     end
 
     test "fails with invalid signature", %{conn: conn} do
-      conn = post(conn, "/api/payment/claim", %{"payment_id" => @valid_payment_id, "recipient" => @valid_recipient, "signature" => "invalid_signature"})
+      conn =
+        post(conn, "/api/payment/claim", %{
+          "payment_id" => @valid_payment_id,
+          "recipient" => @valid_recipient,
+          "signature" => "invalid_signature"
+        })
+
       assert %{"status" => "failed"} = json_response(conn, 400)
     end
   end

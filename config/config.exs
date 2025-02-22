@@ -4,7 +4,7 @@ config :creepy_pay,
   generators: [timestamp_type: :utc_datetime]
 
 config :mnesia,
-  dir: '.mnesia/#{Mix.env}/#{node()}'
+  dir: ~c".mnesia/#{Mix.env()}/#{node()}"
 
 # Configures the endpoint
 config :creepy_pay, CreepyPayWeb.Endpoint,

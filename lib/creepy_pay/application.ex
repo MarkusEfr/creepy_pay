@@ -18,9 +18,9 @@ defmodule CreepyPay.Application do
       # Start to serve requests, typically the last entry
       CreepyPayWeb.Endpoint
     ]
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
+    CreepyPay.Payments.setup()
     opts = [strategy: :one_for_one, name: CreepyPay.Supervisor]
     Supervisor.start_link(children, opts)
   end

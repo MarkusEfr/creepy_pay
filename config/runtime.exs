@@ -30,9 +30,17 @@ source!([
 ])
 
 rpc_url = env!("RPC_URL") || (Logger.error("❌ Missing RPC_URL") && raise "Missing RPC_URL")
-contract_address = env!("CONTRACT_ADDRESS") || (Logger.error("❌ Missing CONTRACT_ADDRESS") && raise "Missing CONTRACT_ADDRESS")
-creepy_wallet = env!("CREEPY_WALLET") || (Logger.error("❌ Missing CREEPY_WALLET") && raise "Missing CREEPY_WALLET")
-private_key = env!("PRIVATE_KEY") || (Logger.error("❌ Missing PRIVATE_KEY") && raise "Missing PRIVATE_KEY")
+
+contract_address =
+  env!("CONTRACT_ADDRESS") ||
+    (Logger.error("❌ Missing CONTRACT_ADDRESS") && raise "Missing CONTRACT_ADDRESS")
+
+creepy_wallet =
+  env!("CREEPY_WALLET") ||
+    (Logger.error("❌ Missing CREEPY_WALLET") && raise "Missing CREEPY_WALLET")
+
+private_key =
+  env!("PRIVATE_KEY") || (Logger.error("❌ Missing PRIVATE_KEY") && raise "Missing PRIVATE_KEY")
 
 Logger.info("Using RPC_URL: #{rpc_url}")
 Logger.info("Using CONTRACT_ADDRESS: #{contract_address}")
