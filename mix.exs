@@ -54,7 +54,10 @@ defmodule CreepyPay.MixProject do
       {:qr_code, "~> 3.1.0"},
       {:dotenvy, "~> 1.0.1"},
       {:memento, "~> 0.5.0"},
-      {:decimal, "~> 2.3.0"}
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"},
+      {:decimal, "~> 2.3.0"},
+      {:block_keys, "~> 1.0.2"},
     ]
   end
 

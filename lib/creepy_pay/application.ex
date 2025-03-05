@@ -16,11 +16,12 @@ defmodule CreepyPay.Application do
       # Start a worker by calling: CreepyPay.Worker.start_link(arg)
       # {CreepyPay.Worker, arg},
       # Start to serve requests, typically the last entry
+      CreepyPay.Repo,
       CreepyPayWeb.Endpoint
     ]
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    CreepyPay.Payments.setup()
+    # CreepyPay.Payments.setup()
     opts = [strategy: :one_for_one, name: CreepyPay.Supervisor]
     Supervisor.start_link(children, opts)
   end

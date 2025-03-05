@@ -6,6 +6,8 @@ config :creepy_pay,
 config :mnesia,
   dir: ~c".mnesia/#{Mix.env()}/#{node()}"
 
+config :creepy_pay, ecto_repos: [CreepyPay.Repo]
+
 # Configures the endpoint
 config :creepy_pay, CreepyPayWeb.Endpoint,
   url: [host: "localhost"],

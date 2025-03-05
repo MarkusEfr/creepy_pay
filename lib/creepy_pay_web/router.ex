@@ -8,20 +8,17 @@ defmodule CreepyPayWeb.Router do
   scope "/api", CreepyPayWeb do
     pipe_through(:api)
 
-    # Step 1: Generate a new payment request
+    # Payment API
     post("/payment/generate", PaymentController, :generate_payment_request)
-
-    # Step 2: Process the payment (generates stealth wallet + transaction)
     post("/payment/process", PaymentController, :process_payment)
-
-    # Step 3: Get the payment details (returns QR code + link)
     get("/payment/details/:payment_id", PaymentController, :get_payment_details)
-
-    # Step 4: Verify if the payment was received
     get("/payment/verify/:payment_id", PaymentController, :verify_payment)
-
-    # Step 5: Claim the funds after payment
     post("/payment/claim", PaymentController, :claim)
+
+    # Wallet API
+    post("/wallet/create", WalletController, :create_wallet)
+    get("/wallet/:wallet_id", WalletController, :get_wallet)
+    get("/wallets/:merchant_gem", WalletController, :list_wallets)
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

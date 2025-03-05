@@ -1,49 +1,74 @@
 defmodule CreepyPay.Payments do
-  use Memento.Table,
-    attributes: [:payment_id, :stealth_address, :amount, :status],
-    type: :set
+  use Ecto.Schema
+  import Ecto.Changeset
+  alias CreepyPay.Repo
+  alias CreepyPay.Wallets
 
-  @table __MODULE__
+  @primary_key {:payment_id, :string, autogenerate: false}
+  @derive {Jason.Encoder,
+           only: [:payment_id, :merchant_gem, :stealth_address, :amount, :status, :inserted_at]}
+  schema "payments" do
+    field(:merchant_gem, :string)
+    field(:stealth_address, :string)
+    field(:amount, :string)
+    field(:status, :string, default: "pending")
 
-  def setup do
-    nodes = [node()]
-    Memento.stop()
-    Memento.Schema.create(nodes)
-    Memento.start()
+    timestamps()
+  end
 
-    case Memento.Table.create(@table, disc_copies: nodes) do
-      :ok -> IO.puts("✅ Mnesia table #{@table} created successfully")
-      {:error, {:already_exists, _}} -> IO.puts("⚠️ Mnesia table #{@table} already exists")
-      _ -> IO.puts("❌ Mnesia setup failed")
+  @doc """
+  Changeset for validating payment data.
+  """
+  def changeset(payment, attrs) do
+    payment
+    |> cast(attrs, [:payment_id, :merchant_gem, :stealth_address, :amount, :status])
+    |> validate_required([:payment_id, :merchant_gem, :amount, :status])
+  end
+
+  @doc """
+  Creates a new payment and assigns a stealth address dynamically.
+  """
+  def store_payment(%{merchant_gem: merchant_gem, amount: _amount} = payment) do
+    case Wallets.get_wallet_by_merchant(merchant_gem) do
+      nil ->
+        {:error, "Merchant wallet not found"}
+
+      _wallet ->
+        stealth_address = Wallets.create_wallet(merchant_gem) |> elem(1) |> Map.get(:address)
+
+        %__MODULE__{}
+        |> changeset(
+          payment
+          |> Map.put(:payment_id, Ecto.UUID.generate())
+          |> Map.put(:stealth_address, stealth_address)
+          |> Map.put(:status, "pending")
+        )
+        |> Repo.insert()
     end
   end
 
-  def store_payment(payment_id, stealth_address, amount) do
-    Memento.transaction!(fn ->
-      Memento.Query.write(%@table{
-        payment_id: payment_id,
-        stealth_address: stealth_address,
-        amount: amount,
-        status: "pending"
-      })
-    end)
-  end
-
+  @doc """
+  Retrieves a payment by ID.
+  """
   def get_payment(payment_id) do
-    Memento.transaction!(fn ->
-      case Memento.Query.read(@table, payment_id) do
-        nil -> {:error, "Payment not found"}
-        record -> {:ok, record}
-      end
-    end)
+    case Repo.get(__MODULE__, payment_id) do
+      nil -> {:error, "Payment not found"}
+      payment -> {:ok, payment}
+    end
   end
 
+  @doc """
+  Updates the payment status.
+  """
   def update_payment_status(payment_id, new_status) do
-    Memento.transaction!(fn ->
-      case Memento.Query.read(@table, payment_id) do
-        nil -> {:error, "Payment not found"}
-        record -> Memento.Query.write(%{record | status: new_status})
-      end
-    end)
+    case get_payment(payment_id) do
+      {:ok, payment} ->
+        payment
+        |> changeset(%{status: new_status})
+        |> Repo.update()
+
+      error ->
+        error
+    end
   end
 end
