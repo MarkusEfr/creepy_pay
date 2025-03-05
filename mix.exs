@@ -53,7 +53,8 @@ defmodule CreepyPay.MixProject do
       {:bandit, "~> 1.5"},
       {:qr_code, "~> 3.1.0"},
       {:dotenvy, "~> 1.0.1"},
-      {:memento, "~> 0.5.0"}
+      {:memento, "~> 0.5.0"},
+      {:decimal, "~> 2.3.0"}
     ]
   end
 

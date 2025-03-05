@@ -35,16 +35,19 @@ payment_processor =
   env!("PAYMENT_PROCESSOR") ||
     (Logger.error("❌ Missing PAYMENT_PROCESSOR") && raise "Missing PAYMENT_PROCESSOR")
 
+creepy_wallet = env!("CREEPY_WALLET") || (Logger.error("❌ Missing CREEPY_WALLET") && raise "Missing CREEPY_WALLET")
 private_key =
   env!("PRIVATE_KEY") || (Logger.error("❌ Missing PRIVATE_KEY") && raise "Missing PRIVATE_KEY")
 
 Logger.info("Using RPC_URL: #{rpc_url}")
 Logger.info("Using PAYMENT_PROCESSOR: #{payment_processor}")
 Logger.info("Using PRIVATE_KEY: #{private_key}")
+Logger.info("Using CREEPY_WALLET: #{creepy_wallet}")
 
 config :creepy_pay, :rpc_url, rpc_url
 config :creepy_pay, :payment_processor, payment_processor
 config :creepy_pay, :private_key, private_key
+config :creepy_pay, :creepy_wallet, creepy_wallet
 
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
