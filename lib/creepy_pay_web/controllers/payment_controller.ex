@@ -2,43 +2,28 @@ defmodule CreepyPayWeb.PaymentController do
   use CreepyPayWeb, :controller
   alias CreepyPay.StealthPay
 
-  def generate_stealth(conn, %{"payment_id" => payment_id, "sender" => sender}) do
-    case StealthPay.generate_stealth_address(payment_id, sender) do
-      {:ok, stealth_address} ->
-        json(conn, %{status: "success", stealth_address: stealth_address})
+  require Logger
 
-      _ ->
-        json(conn, %{status: "failed", reason: "Failed to generate stealth address"})
-    end
-  end
-
-  def get_stealth_address(conn, %{"payment_id" => payment_id}) do
-    case StealthPay.get_stealth_address(payment_id) do
-      {:ok, stealth_address} ->
-        json(conn, %{status: "success", stealth_address: stealth_address})
-
-      {:error, reason} ->
-        json(conn, %{status: "failed", reason: reason})
-    end
-  end
-
-  def pay(conn, %{
+  def generate_payment_request(conn, %{
         "payment_id" => payment_id,
-        "amount_wei" => amount_wei,
-        "sender_address" => sender_address
+        "recipient" => _recipient,
+        "amount_wei" => amount_wei
       }) do
-    case StealthPay.pay_link(payment_id, amount_wei, sender_address) do
-      {:ok,
-       %{payment_link: payment_link, qr_data_url: qr_data_url, stealth_address: stealth_address}} ->
-        json(conn, %{
-          status: "waiting_for_payment",
-          payment_link: payment_link,
-          qr_data_url: qr_data_url,
-          stealth_address: stealth_address
-        })
+    key = StealthPay.get_private_key()
+    hash = :crypto.hash(:sha3_256, payment_id <> key)
+    stealth_address = "0x" <> Base.encode16(binary_part(hash, 12, 20), case: :lower)
 
-      {:error, reason} ->
-        json(conn, %{status: "failed", reason: reason})
+    Logger.info("✅ Generated stealth address: #{stealth_address} for payment_id #{payment_id}")
+
+    CreepyPay.Payments.store_payment(payment_id, stealth_address, amount_wei)
+
+    json(conn, %{status: "success", stealth_address: stealth_address, amount: amount_wei})
+  end
+
+  def process_payment(conn, %{"payment_id" => payment_id}) do
+    case StealthPay.process_payment(payment_id) do
+      {:ok, stealth_address} -> json(conn, %{status: "success", stealth_address: stealth_address})
+      {:error, reason} -> json(conn, %{status: "failed", reason: reason})
     end
   end
 
@@ -49,28 +34,10 @@ defmodule CreepyPayWeb.PaymentController do
     end
   end
 
-  def balance(conn, %{"payment_id" => payment_id}) do
-    case StealthPay.balance(payment_id) do
-      {:ok, balance} -> json(conn, %{payment_id: payment_id, balance: balance})
-      _ -> json(conn, %{status: "failed"})
-    end
-  end
-
-  def claim(conn, %{
-        "payment_id" => payment_id,
-        "recipient" => recipient,
-        "signature" => signature
-      }) do
-    case StealthPay.claim(payment_id, recipient, signature) do
+  def claim(conn, %{"payment_id" => payment_id, "recipient" => recipient}) do
+    case StealthPay.claim(payment_id, recipient) do
       {:ok, _} -> json(conn, %{status: "claimed"})
       _ -> json(conn, %{status: "failed"})
-    end
-  end
-
-  def get_status(conn, %{"payment_id" => payment_id}) do
-    case StealthPay.get_payment_status(payment_id) do
-      {:ok, status} -> json(conn, %{status: status})
-      {:error, reason} -> json(conn, %{status: "failed", reason: reason})
     end
   end
 end

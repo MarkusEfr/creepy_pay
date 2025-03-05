@@ -8,13 +8,13 @@ defmodule CreepyPayWeb.Router do
   scope "/api", CreepyPayWeb do
     pipe_through(:api)
 
-    # Payment
-    post("/payment/pay", PaymentController, :pay)
-    post("/payment/verify", PaymentController, :verify)
+    post("/payment/generate_request", PaymentController, :generate_payment_request)
+    post("/payment/process", PaymentController, :process_payment)
+    post("/payment/verify", PaymentController, :verify_payment)
     post("/payment/claim", PaymentController, :claim)
-    post("/payment/generate_stealth", PaymentController, :generate_stealth)
-    get("/payment/balance/:payment_id", PaymentController, :balance)
     get("/payment/status/:payment_id", PaymentController, :get_status)
+    get("/payment/balance/:payment_id", PaymentController, :balance)
+    post("/payment/generate_stealth", PaymentController, :generate_stealth_address)
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
