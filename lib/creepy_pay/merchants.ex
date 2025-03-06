@@ -5,6 +5,7 @@ defmodule CreepyPay.Merchants do
   alias Argon2
 
   @primary_key {:id, :id, autogenerate: true}
+  @derive {Jason.Encoder, only: [:id, :merchant_gem, :shitty_name, :email, :inserted_at]}
   schema "merchants" do
     field(:merchant_gem, :string)
     field(:shitty_name, :string)
@@ -40,10 +41,6 @@ defmodule CreepyPay.Merchants do
       madness_key_hash: Argon2.hash_pwd_salt(madness_key)
     })
     |> Repo.insert()
-    |> case do
-      {:ok, merchant} -> {:ok, Map.put(merchant, :madness_key, madness_key)}
-      error -> error
-    end
   end
 
   defp generate_merchant_gem do

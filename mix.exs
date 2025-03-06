@@ -59,6 +59,7 @@ defmodule CreepyPay.MixProject do
       {:decimal, "~> 2.3.0"},
       {:faker, "~> 0.18"},
       {:argon2_elixir, "~> 4.1.2"},
+      {:guardian, "~> 2.3"},
       {:block_keys, "~> 1.0.2"},
     ]
   end

@@ -62,6 +62,10 @@ config :creepy_pay, CreepyPay.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :creepy_pay, CreepyPay.Guardian,
+  issuer: :creepy_pay,
+  secret_key: hidden_seed
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

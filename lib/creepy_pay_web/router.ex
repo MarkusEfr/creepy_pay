@@ -5,11 +5,15 @@ defmodule CreepyPayWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  scope "/api/merchant", CreepyPayWeb do
+    pipe_through(:api)
+    # Merchant API
+    post("/register", MerchantController, :register)
+  end
+
   scope "/api", CreepyPayWeb do
     pipe_through(:api)
-
-    # Merchant API
-    post("/merchant/register", MerchantController, :register)
+    pipe_through(CreepyPay.Guardian.AuthPipeline)
 
     # Payment API
     post("/payment/generate", PaymentController, :generate_payment_request)
