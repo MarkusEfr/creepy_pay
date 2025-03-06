@@ -1,6 +1,7 @@
 defmodule CreepyPayWeb.MerchantController do
   use CreepyPayWeb, :controller
-  alias CreepyPay.Merchants
+  alias CreepyPay.{Merchants, Auth.Guardian}
+  alias Argon2
 
   @doc "Registers a new merchant"
   def register(conn, %{
@@ -14,18 +15,26 @@ defmodule CreepyPayWeb.MerchantController do
            "madness_key" => madness_key
          }) do
       {:error, %Ecto.Changeset{errors: errors}} ->
-        json(conn, %{
-          error: "Merchant registration failed",
-          reason: "Validation errors #{inspect(errors)}"
-        })
+        json(conn, %{error: "Merchant registration failed", reason: "#{inspect(errors)}"})
 
       {:ok, merchant} ->
-        json(conn, %{
-          merchant_gem: merchant.merchant_gem,
-          shitty_name: merchant.shitty_name,
-          email: merchant.email,
-          madness_key: merchant.madness_key
-        })
+        json(conn, merchant)
     end
+  end
+
+  @doc "Merchant login and JWT generation"
+  def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
+    with {:ok, merchant} <- Merchants.authenticate_merchant(identifier, madness_key),
+         {:ok, token, _claims} <- Guardian.encode_and_sign(merchant) do
+      json(conn, %{token: token, merchant_gem: merchant.merchant_gem})
+    else
+      {:error, _} -> json(conn, %{error: "Invalid credentials"})
+    end
+  end
+
+  @doc "Retrieves current authenticated merchant"
+  def me(conn, _params) do
+    merchant = Guardian.Plug.current_resource(conn)
+    json(conn, %{merchant: merchant})
   end
 end

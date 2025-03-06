@@ -6,7 +6,7 @@ defmodule CreepyPayWeb.PaymentController do
   def create_payment(conn, %{"merchant_gem" => merchant_gem, "amount" => amount}) do
     case Payments.store_payment(%{merchant_gem: merchant_gem, amount: amount}) do
       {:ok, payment} ->
-        json(conn, %{payment_id: payment.payment_id, stealth_address: payment.stealth_address})
+        json(conn, payment)
 
       {:error, _reason} ->
         json(conn, %{error: "Payment creation failed"})

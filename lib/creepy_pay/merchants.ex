@@ -1,6 +1,6 @@
 defmodule CreepyPay.Merchants do
   use Ecto.Schema
-  import Ecto.Changeset
+  import Ecto.{Changeset, Query}
   alias CreepyPay.Repo
   alias Argon2
 
@@ -41,6 +41,26 @@ defmodule CreepyPay.Merchants do
       madness_key_hash: Argon2.hash_pwd_salt(madness_key)
     })
     |> Repo.insert()
+  end
+
+  def authenticate_merchant(identifier, madness_key) do
+    query =
+      from(m in __MODULE__,
+        where:
+          m.email == ^identifier or m.shitty_name == ^identifier or m.merchant_gem == ^identifier
+      )
+
+    case Repo.one(query) do
+      nil ->
+        {:error, "Invalid credentials"}
+
+      merchant ->
+        if Argon2.verify_pass(madness_key, merchant.madness_key_hash) do
+          {:ok, merchant}
+        else
+          {:error, "Invalid credentials"}
+        end
+    end
   end
 
   defp generate_merchant_gem do
