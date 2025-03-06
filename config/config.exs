@@ -3,9 +3,6 @@ import Config
 config :creepy_pay,
   generators: [timestamp_type: :utc_datetime]
 
-config :mnesia,
-  dir: ~c".mnesia/#{Mix.env()}/#{node()}"
-
 config :creepy_pay, ecto_repos: [CreepyPay.Repo]
 
 # Configures the endpoint

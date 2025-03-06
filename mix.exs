@@ -57,6 +57,8 @@ defmodule CreepyPay.MixProject do
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
       {:decimal, "~> 2.3.0"},
+      {:faker, "~> 0.18"},
+      {:argon2_elixir, "~> 4.1.2"},
       {:block_keys, "~> 1.0.2"},
     ]
   end

@@ -8,6 +8,9 @@ defmodule CreepyPayWeb.Router do
   scope "/api", CreepyPayWeb do
     pipe_through(:api)
 
+    # Merchant API
+    post("/merchant/register", MerchantController, :register)
+
     # Payment API
     post("/payment/generate", PaymentController, :generate_payment_request)
     post("/payment/process", PaymentController, :process_payment)
