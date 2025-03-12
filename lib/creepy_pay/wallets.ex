@@ -2,39 +2,40 @@ defmodule CreepyPay.Wallets do
   import Ecto.Query
   alias CreepyPay.Repo
   alias CreepyPay.Wallets.Wallet
-  alias BlockKeys.{CKD, Ethereum, Mnemonic}
 
-  @bip44_path "m/44'/60'/0'/0"
+  require Logger
 
-  @spec create_wallet(String.t()) :: {:ok, map()} | {:error, any()}
   def create_wallet(merchant_gem) do
-    # Generate mnemonic and derive master private key
-    mnemonic = Mnemonic.generate_phrase()
-    seed = Mnemonic.generate_seed(mnemonic, hidden_seed_key())
-    {master_priv, _master_pub} = CKD.master_keys(seed)
+    case generate_wallet_from_node() do
+      %{"address" => address, "privateKey" => pk, "mnemonic" => phrase} ->
+        index = get_next_wallet_index(merchant_gem)
 
-    # Derive child private key from master using BIP44 path
-    index = get_next_wallet_index(merchant_gem)
-    path = "#{@bip44_path}/#{index}"
+        wallet_attrs = %{
+          merchant_gem: merchant_gem,
+          wallet_index: index,
+          mnemonic: phrase,
+          private_key: pk,
+          address: address
+        }
 
-    {:ok, child_priv} = CKD.child_key_private(master_priv, path)
+        Logger.info("Wallet created: #{inspect(wallet_attrs)}")
 
-    # Generate Ethereum address from child public key
-    eth_address = Ethereum.address(child_priv, path)
+        wallet_attrs
+        |> Wallet.new()
+        |> Repo.insert()
 
-    # Store wallet data
-    wallet_attrs = %{
-      merchant_gem: merchant_gem,
-      wallet_index: index,
-      mnemonic: mnemonic,
-      root_key: master_priv,
-      address: eth_address,
-      private_key: child_priv
-    }
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 
-    Wallet.new()
-    |> Wallet.changeset(wallet_attrs)
-    |> Repo.insert()
+  def generate_wallet_from_node do
+    path = Path.join(["assets", "js", "generate_wallet.mjs"])
+
+    case System.cmd("node", [path]) do
+      {json, 0} -> Jason.decode!(json)
+      {err, code} -> {:error, "Node script failed (code #{code}): #{err}"}
+    end
   end
 
   @doc """
@@ -69,7 +70,14 @@ defmodule CreepyPay.Wallets do
   Retrieves a wallet by merchant_gem.
   """
   def get_wallet_by_merchant(merchant_gem) do
-    Repo.get_by(Wallet, merchant_gem: merchant_gem)
+    from(w in Wallet,
+      where: w.merchant_gem == ^merchant_gem,
+      left_join: p in CreepyPay.Payments,
+      on: p.stealth_address == w.address,
+      where: is_nil(p.id),
+      select: w
+    )
+    |> Repo.all()
   end
 
   defp hidden_seed_key, do: Application.get_env(:creepy_pay, :hidden_seed, nil)

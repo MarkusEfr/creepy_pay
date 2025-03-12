@@ -20,6 +20,11 @@ defmodule CreepyPayWeb.PaymentController do
     end
   end
 
+  def get_payment_details(conn, %{"payment_id" => payment_id}) do
+    {:ok, payment} = Payments.get_payment(payment_id)
+    json(conn, %{status: "success", payment: payment})
+  end
+
   def process_payment(conn, %{"payment_id" => payment_id}) do
     case StealthPay.process_payment(payment_id) do
       {:ok, payment} ->

@@ -35,7 +35,10 @@ payment_processor =
   env!("PAYMENT_PROCESSOR") ||
     (Logger.error("❌ Missing PAYMENT_PROCESSOR") && raise "Missing PAYMENT_PROCESSOR")
 
-creepy_wallet = env!("CREEPY_WALLET") || (Logger.error("❌ Missing CREEPY_WALLET") && raise "Missing CREEPY_WALLET")
+creepy_wallet =
+  env!("CREEPY_WALLET") ||
+    (Logger.error("❌ Missing CREEPY_WALLET") && raise "Missing CREEPY_WALLET")
+
 private_key =
   env!("PRIVATE_KEY") || (Logger.error("❌ Missing PRIVATE_KEY") && raise "Missing PRIVATE_KEY")
 
@@ -62,7 +65,7 @@ config :creepy_pay, CreepyPay.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-config :creepy_pay, CreepyPay.Guardian,
+config :creepy_pay, CreepyPay.Auth.Guardian,
   issuer: :creepy_pay,
   secret_key: hidden_seed
 

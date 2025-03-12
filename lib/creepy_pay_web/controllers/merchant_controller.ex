@@ -3,6 +3,7 @@ defmodule CreepyPayWeb.MerchantController do
   alias CreepyPay.{Merchants, Auth.Guardian}
   alias Argon2
 
+  require Logger
   @doc "Registers a new merchant"
   def register(conn, %{
         "shitty_name" => shitty_name,
@@ -25,7 +26,9 @@ defmodule CreepyPayWeb.MerchantController do
   @doc "Merchant login and JWT generation"
   def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
     with {:ok, merchant} <- Merchants.authenticate_merchant(identifier, madness_key),
-         {:ok, token, _claims} <- Guardian.encode_and_sign(merchant) do
+         Logger.info("Merchant authenticated", merchant: merchant),
+         {:ok, token, _claims} <-
+           Guardian.encode_and_sign(merchant) |> IO.inspect(label: "[DEBUG] Token") do
       json(conn, %{token: token, merchant_gem: merchant.merchant_gem})
     else
       {:error, _} -> json(conn, %{error: "Invalid credentials"})

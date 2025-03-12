@@ -5,14 +5,10 @@ defmodule CreepyPayWeb.WalletController do
   @doc """
   Creates a new stealth wallet for a merchant.
   """
-  def create_wallet(conn, %{"merchant_gem" => merchant_gem}) do
-    case Wallets.create_wallet(merchant_gem) do
-      {:ok, wallet} ->
-        json(conn, %{address: wallet.address, index: wallet.wallet_index})
+  def create_wallet(conn, %{"merchant_gem" => gem}) do
+    {:ok, %CreepyPay.Wallets.Wallet{} = wallet} = Wallets.create_wallet(gem)
 
-      {:error, reason} ->
-        json(conn, %{error: "Wallet creation failed", reason: reason})
-    end
+    json(conn, %{wallet: wallet})
   end
 
   @doc """

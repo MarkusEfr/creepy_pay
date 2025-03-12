@@ -4,14 +4,12 @@ defmodule CreepyPay.Auth.Guardian do
   alias CreepyPay.Merchants
   alias CreepyPay.Repo
 
-  @doc "Fetches merchant by ID and returns it"
-  def subject_for_token(%Merchants{} = merchant, _claims), do: {:ok, merchant.id}
-  def subject_for_token(_, _), do: {:error, "Unknown resource type"}
+  def subject_for_token(%Merchants{id: id}, _claims), do: {:ok, to_string(id)}
+  def subject_for_token(_, _), do: {:error, :reason_for_error}
 
-  @doc "Fetches merchant from token claims"
-  def resource_from_claims(%{"sub" => merchant_id}) do
-    case Repo.get(Merchants, merchant_id) do
-      nil -> {:error, "Merchant not found"}
+  def resource_from_claims(%{"sub" => id}) do
+    case Repo.get(Merchants, String.to_integer(id)) do
+      nil -> {:error, :resource_not_found}
       merchant -> {:ok, merchant}
     end
   end

@@ -50,16 +50,14 @@ defmodule CreepyPay.Merchants do
           m.email == ^identifier or m.shitty_name == ^identifier or m.merchant_gem == ^identifier
       )
 
-    case Repo.one(query) do
-      nil ->
-        {:error, "Invalid credentials"}
+    IO.inspect(identifier, label: "[DEBUG] Login identifier")
+    IO.inspect(madness_key, label: "[DEBUG] Provided madness_key")
 
-      merchant ->
-        if Argon2.verify_pass(madness_key, merchant.madness_key_hash) do
-          {:ok, merchant}
-        else
-          {:error, "Invalid credentials"}
-        end
+    with %__MODULE__{} = merchant <- Repo.one(query),
+         true <- Argon2.verify_pass(madness_key, merchant.madness_key_hash) do
+      {:ok, merchant}
+    else
+      reason -> {:error, inspect(reason)}
     end
   end
 

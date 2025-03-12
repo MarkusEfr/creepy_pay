@@ -4,8 +4,6 @@ defmodule CreepyPay.StealthPay do
   alias Finch
   alias QRCode
 
-  @recipient "0x8888ee107011dFb0b8C51448f21C33DD690e7C88"
-
   # Step 1: Generate Payment Request
   def generate_payment_request(merchant_gem, amount_wei) do
     new_payment = %{
@@ -15,24 +13,22 @@ defmodule CreepyPay.StealthPay do
 
     {:ok,
      %CreepyPay.Payments{
-       payment_id: payment_id,
+       payment_id: _,
        status: _,
        merchant_gem: _,
        amount: _,
        stealth_address: _
-     } = created_payment} = CreepyPay.Payments.store_payment(new_payment)
-
-    {:ok, %{created_payment | payment_id: payment_id}}
+       } = _created_payment} = CreepyPay.Payments.store_payment(new_payment)
   end
 
   # Step 2: Process Payment (Generate Unsigned TX + Ethereum Payment Link + QR Code)
   def process_payment(payment_id) do
     case CreepyPay.Payments.get_payment(payment_id) do
       {:ok,
-       %CreepyPay.Payments{amount: amount_wei, status: "pending"} =
+       %CreepyPay.Payments{amount: amount_wei, status: "pending", stealth_address: address} =
            payment}
       when amount_wei > 0 ->
-        with {:ok, unsigned_tx} <- create_unsigned_tx(payment_id, @recipient, amount_wei),
+        with {:ok, unsigned_tx} <- create_unsigned_tx(payment_id, address, amount_wei),
              {:ok, eth_payment_link} <- generate_ethereum_payment_link(payment),
              {:ok, qr_base64} <- generate_qr_code(eth_payment_link) do
           payment_data = %{
@@ -81,20 +77,17 @@ defmodule CreepyPay.StealthPay do
   defp generate_ethereum_payment_link(%{
          payment_id: payment_id,
          amount: amount_wei,
-         merchant_gem: _merchant_gem
+         merchant_gem: _merchant_gem,
+         stealth_address: address
        }) do
-    factory_address = get_payment_processor()
+    payment_contract = get_payment_processor()
     # Sepolia Testnet
     chain_id = "11155111"
     hashed_payment_id = payment_id |> transform_payment_id()
-
-    unlock_time = generate_unlock_time(24)
-
     eth_payment_link =
-      "ethereum:#{factory_address}@#{chain_id}/processPayment" <>
+      "ethereum:#{payment_contract}@#{chain_id}/createPayment" <>
         "?payment_id=#{hashed_payment_id}" <>
-        "&recipient=#{@recipient}" <>
-        "&unlock_time=#{unlock_time}" <>
+        "&stealth_address=#{address}" <>
         "&value=#{amount_wei}"
 
     {:ok, eth_payment_link}

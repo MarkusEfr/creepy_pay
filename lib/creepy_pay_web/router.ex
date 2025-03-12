@@ -6,12 +6,13 @@ defmodule CreepyPayWeb.Router do
   end
 
   pipeline :auth do
-    plug Guardian.Plug.Pipeline,
+    plug(Guardian.Plug.Pipeline,
       module: CreepyPay.Auth.Guardian,
       error_handler: CreepyPayWeb.AuthErrorHandler
+    )
 
-    plug Guardian.Plug.VerifyHeader, realm: "Bearer"
-    plug Guardian.Plug.LoadResource
+    plug(Guardian.Plug.VerifyHeader, scheme: "Bearer")
+    plug(Guardian.Plug.LoadResource)
   end
 
   scope "/api/merchant", CreepyPayWeb do
