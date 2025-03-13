@@ -4,7 +4,6 @@ defmodule CreepyPay.Merchants do
   import Phoenix.Controller, only: [json: 2]
   import Plug.Conn, only: [put_status: 2]
 
-  alias Argon2
   alias CreepyPay.Repo
   alias Faker, as: GemChunk
   require Logger
@@ -99,9 +98,6 @@ defmodule CreepyPay.Merchants do
             m.merchant_gem_crypton == ^identifier
       )
 
-    IO.inspect(identifier, label: "[DEBUG] Login identifier")
-    IO.inspect(madness_key, label: "[DEBUG] Provided madness_key")
-
     with %__MODULE__{} = merchant <- Repo.one(query),
          true <- Argon2.verify_pass(madness_key, merchant.madness_key_hash) do
       {:ok, merchant}
@@ -114,7 +110,7 @@ defmodule CreepyPay.Merchants do
     do:
       [
         GemChunk.Cat.name(),
-        GemChunk.Dog.PtBr.characteristic(),
+        GemChunk.Food.dish(),
         GemChunk.Pizza.style(),
         GemChunk.Pokemon.name(),
         GemChunk.Superhero.name(),
