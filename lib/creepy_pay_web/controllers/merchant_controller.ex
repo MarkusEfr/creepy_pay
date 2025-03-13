@@ -22,7 +22,7 @@ defmodule CreepyPayWeb.MerchantController do
   - `{:error, binary()}` if registration fails with an error message
   - `{:error, Ecto.Changeset.t()}` if registration fails with a changeset
   """
-  def register_merchant(conn, %{
+  def register(conn, %{
         "shitty_name" => shitty_name,
         "email" => email,
         "madness_key" => madness_key
@@ -50,8 +50,11 @@ defmodule CreepyPayWeb.MerchantController do
         {:ok, merchant} ->
           json(conn, %{status: "success", merchant: merchant})
 
+        {:error, %Ecto.Changeset{} = changeset} ->
+          json(conn, %{status: "failed", error: inspect(changeset.errors)})
+
         {:error, reason} ->
-          conn |> put_status(422) |> json(%{status: "failed", error: inspect(reason)})
+          json(conn, %{status: "failed", error: inspect(reason)})
       end
     else
       conn

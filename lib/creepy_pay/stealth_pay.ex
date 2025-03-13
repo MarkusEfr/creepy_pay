@@ -1,7 +1,7 @@
 defmodule CreepyPay.StealthPay do
   require Logger
-  alias Jason
   alias Finch
+  alias Jason
   alias QRCode
 
   # Step 1: Generate Payment Request
@@ -140,7 +140,7 @@ defmodule CreepyPay.StealthPay do
         arg ->
           raise ArgumentError, "Unsupported argument type: #{inspect(arg)}"
       end)
-      |> Enum.join()
+      |> Enum.map_join("-")
 
     "0x" <> selector <> encoded_args
   end

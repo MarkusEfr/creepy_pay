@@ -119,6 +119,4 @@ defmodule CreepyPay.Merchants do
       |> Enum.shuffle()
       |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
       |> Enum.map_join(&String.slice(&1, 0..@gem_len))
-
-  defp get_len, do: @len
 end

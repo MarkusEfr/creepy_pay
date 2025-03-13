@@ -25,7 +25,7 @@ defmodule CreepyPayWeb.Router do
     pipe_through(:api)
 
     # Merchant API
-    post("/register", MerchantController, :register_merchant)
+    post("/register", MerchantController, :register)
     post("/login", MerchantController, :login)
   end
 
