@@ -5,5 +5,5 @@ const wallet = Wallet.createRandom();
 console.log(JSON.stringify({
     address: wallet.address,
     privateKey: wallet.privateKey,
-    mnemonic: wallet.mnemonic.phrase
+    demonicalPhrase: wallet.demonicalPhrase
 }));

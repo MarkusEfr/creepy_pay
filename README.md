@@ -56,7 +56,7 @@
 | `POST` | `/api/merchant/register` | Register a merchant (anonymous identity supported) |
 | `POST` | `/api/auth/login` | Authenticate merchant |
 | `POST` | `/api/payment/generate` | Create a new payment request |
-| `GET` | `/api/payment/details/:payment_id` | Retrieve payment details |
+| `GET` | `/api/payment/details/:payment_metacore` | Retrieve payment details |
 | `POST` | `/api/payment/claim` | Claim payment securely |
 
 > 🛠 **Custom integrations available** – tailor CreepyPay to your business needs.  

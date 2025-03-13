@@ -27,16 +27,16 @@ defmodule CreepyPayWeb.Router do
     pipe_through(:auth)
 
     # Payment API
-    post("/payment/generate", PaymentController, :generate_payment_request)
+    post("/payment/create", PaymentController, :create_payment)
     post("/payment/process", PaymentController, :process_payment)
-    get("/payment/details/:payment_id", PaymentController, :get_payment_details)
-    get("/payment/verify/:payment_id", PaymentController, :verify_payment)
+    get("/payment/details/:payment_metacore", PaymentController, :get_payment_details)
+    get("/payment/verify/:payment_metacore", PaymentController, :verify_payment)
     post("/payment/claim", PaymentController, :claim)
 
     # Wallet API
     post("/wallet/create", WalletController, :create_wallet)
     get("/wallet/:wallet_id", WalletController, :get_wallet)
-    get("/wallets/:merchant_gem", WalletController, :list_wallets)
+    get("/wallets/:merchant_gem_crypton", WalletController, :list_wallets)
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

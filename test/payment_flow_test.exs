@@ -7,12 +7,12 @@ defmodule CreepyPay.PaymentFlowTest do
     merchant_data = %{
       "shitty_name" => "TestMerchant",
       "email" => email,
-      "madness_key" => "secret123"
+      "madness_key" => :crypto.strong_rand_bytes(32)
     }
 
     # Register
     conn = post(conn, "/api/merchant/register", merchant_data)
-    assert %{"merchant_gem" => merchant_gem} = json_response(conn, 200)
+    assert %{"merchant_gem_crypton" => merchant_gem_crypton} = json_response(conn, 200)
 
     # Login
     conn =
@@ -27,13 +27,13 @@ defmodule CreepyPay.PaymentFlowTest do
     conn =
       build_conn()
       |> put_req_header("authorization", "Bearer #{token}")
-      |> post("/api/wallet/create", %{"merchant_gem" => merchant_gem})
+      |> post("/api/wallet/create", %{"merchant_gem_crypton" => merchant_gem_crypton})
 
     assert %{
       "wallet" => %{
         "address" => _,
         "inserted_at" => _,
-        "merchant_gem" => ^merchant_gem,
+        "merchant_gem_crypton" => ^merchant_gem_crypton,
         "wallet_index" => 0
       }
     } = json_response(conn, 200)
@@ -43,10 +43,10 @@ defmodule CreepyPay.PaymentFlowTest do
       build_conn()
       |> put_req_header("authorization", "Bearer #{token}")
       |> post("/api/payment/generate", %{
-        "merchant_gem" => merchant_gem,
+        "merchant_gem_crypton" => merchant_gem_crypton,
         "amount_wei" => "1000000000000000000"
       })
 
-    assert %{"payment" => %{"payment_id" => _payment_id}} = json_response(conn, 200)
+    assert %{"payment" => %{"payment_metacore" => _payment_id}} = json_response(conn, 200)
   end
 end

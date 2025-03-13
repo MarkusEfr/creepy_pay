@@ -4,7 +4,7 @@ defmodule CreepyPay.Guardian.AuthPipeline do
     module: CreepyPay.Guardian,
     error_handler: CreepyPay.AuthErrorHandler
 
-  plug(Guardian.Plug.VerifyHeader, realm: "Bearer")
+  plug(Guardian.Plug.VerifyHeader, scheme: "Bearer")
   plug(Guardian.Plug.EnsureAuthenticated)
   plug(Guardian.Plug.LoadResource)
 end

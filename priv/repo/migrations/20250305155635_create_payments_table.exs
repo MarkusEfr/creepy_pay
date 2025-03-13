@@ -3,8 +3,8 @@ defmodule CreepyPay.Repo.Migrations.CreatePaymentsTable do
 
   def change do
     create table(:payments) do
-      add :payment_id, :string, primary_key: true
-      add :merchant_gem, :string, null: false
+      add :payment_metacore, :binary, primary_key: true
+      add :merchant_gem_crypton, :binary, null: false
       add :stealth_address, :string
       add :amount, :string, null: false
       add :status, :string, default: "pending", null: false

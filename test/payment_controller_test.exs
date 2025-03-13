@@ -10,7 +10,7 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     test "creates a stealth address", %{conn: conn} do
       conn = post(conn, "/api/payment", %{"recipient" => @valid_recipient})
 
-      assert %{"payment_id" => _, "stealth_address" => _, "payment_link" => _} =
+      assert %{"payment_metacore" => _, "stealth_address" => _, "payment_link" => _} =
                json_response(conn, 200)
     end
   end
@@ -19,7 +19,7 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     test "processes a valid payment", %{conn: conn} do
       conn =
         post(conn, "/api/payment/pay", %{
-          "payment_id" => @valid_payment_id,
+          "payment_metacore" => @valid_payment_id,
           "amount_wei" => "1000000000000000000"
         })
 
@@ -29,7 +29,7 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     test "fails on invalid amount", %{conn: conn} do
       conn =
         post(conn, "/api/payment/pay", %{
-          "payment_id" => @valid_payment_id,
+          "payment_metacore" => @valid_payment_id,
           "amount_wei" => "invalid_amount"
         })
 
@@ -37,14 +37,14 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     end
   end
 
-  describe "GET /api/payment/:payment_id/verify" do
+  describe "GET /api/payment/:payment_metacore/verify" do
     test "verifies an existing stealth address", %{conn: conn} do
       StealthPay.generate_stealth_address(@valid_payment_id, @valid_recipient)
       conn = get(conn, "/api/payment/#{@valid_payment_id}/verify")
       assert %{"status" => "confirmed", "stealth_address" => _} = json_response(conn, 200)
     end
 
-    test "returns not found for invalid payment_id", %{conn: conn} do
+    test "returns not found for invalid payment_metacore", %{conn: conn} do
       conn = get(conn, "/api/payment/invalid_id/verify")
       assert %{"status" => "not_found"} = json_response(conn, 404)
     end
@@ -54,7 +54,7 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     test "claims funds with valid signature", %{conn: conn} do
       conn =
         post(conn, "/api/payment/claim", %{
-          "payment_id" => @valid_payment_id,
+          "payment_metacore" => @valid_payment_id,
           "recipient" => @valid_recipient,
           "signature" => @valid_signature
         })
@@ -65,7 +65,7 @@ defmodule CreepyPayWeb.PaymentControllerTest do
     test "fails with invalid signature", %{conn: conn} do
       conn =
         post(conn, "/api/payment/claim", %{
-          "payment_id" => @valid_payment_id,
+          "payment_metacore" => @valid_payment_id,
           "recipient" => @valid_recipient,
           "signature" => "invalid_signature"
         })

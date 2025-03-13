@@ -1,23 +1,42 @@
 defmodule CreepyPayWeb.AuthErrorHandler do
   import Plug.Conn
+  alias CreepyPay.Auth.Guardian, as: CreepyGuardian
+
   require Logger
 
   @doc """
   Handles authentication errors and sends a JSON response with a clear error message.
+  Uses Guardian verification logic with best practices.
   """
   def auth_error(conn, {type, reason}, _opts) do
-    Logger.warning("Authentication error: #{inspect(type)} - #{inspect(reason)}")
+    token = Guardian.Plug.current_token(conn)
 
-    error_message =
-      case type do
-        :unauthenticated -> "You must be logged in to access this resource."
-        :unauthorized -> "You are not authorized to perform this action."
-        _ -> "Authentication failed. Please try again."
-      end
+    with {:ok, claims} <- CreepyGuardian.decode_and_verify(token, %{}),
+         {:ok, _resource, _claims} <- CreepyGuardian.resource_from_token(token, claims) do
+      Logger.warning("[AUTH ERROR] Type: #{inspect(type)}, Reason: #{inspect(reason)}")
 
-    conn
-    |> put_status(401)
-    |> put_resp_content_type("application/json")
-    |> Jason.encode(%{error: error_message})
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(
+        401,
+        Jason.encode!(%{
+          error: to_string(type),
+          reason: inspect(reason),
+          message: "Authentication failed. Please check your token."
+        })
+      )
+    else
+      _ ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(
+          401,
+          Jason.encode!(%{
+            error: to_string(type),
+            reason: inspect(reason),
+            message: "Unauthorized access."
+          })
+        )
+    end
   end
 end

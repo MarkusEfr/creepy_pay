@@ -15,11 +15,14 @@ defmodule CreepyPayWeb.MerchantController do
            "email" => email,
            "madness_key" => madness_key
          }) do
-      {:error, %Ecto.Changeset{errors: errors}} ->
+      {:error, %Ecto.Changeset{:errors => errors}} ->
         json(conn, %{error: "Merchant registration failed", reason: "#{inspect(errors)}"})
 
       {:ok, merchant} ->
         json(conn, merchant)
+
+      _ ->
+        json(conn, %{error: "Merchant registration failed"})
     end
   end
 

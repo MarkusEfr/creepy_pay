@@ -5,16 +5,16 @@ defmodule CreepyPay.Wallets do
 
   require Logger
 
-  def create_wallet(merchant_gem) do
+  def create_wallet(merchant_gem_crypton) do
     case generate_wallet_from_node() do
-      %{"address" => address, "privateKey" => pk, "mnemonic" => phrase} ->
-        index = get_next_wallet_index(merchant_gem)
+      %{"address" => address, "privateKey" => private_key, "demonical_phrase" => demonical_phrase} ->
+        index = get_next_wallet_index(merchant_gem_crypton)
 
         wallet_attrs = %{
-          merchant_gem: merchant_gem,
+          merchant_gem: merchant_gem_crypton,
           wallet_index: index,
-          mnemonic: phrase,
-          private_key: pk,
+          demonical_phrase: demonical_phrase,
+          private_key: private_key,
           address: address
         }
 
@@ -52,9 +52,9 @@ defmodule CreepyPay.Wallets do
   @doc """
   Retrieves the next available wallet index for a merchant.
   """
-  def get_next_wallet_index(merchant_gem) do
+  def get_next_wallet_index(merchant_gem_crypton) do
     case Repo.one(
-           from(w in Wallet, where: w.merchant_gem == ^merchant_gem, select: max(w.wallet_index))
+           from(w in Wallet, where: w.merchant_gem_crypton == ^merchant_gem_crypton, select: max(w.wallet_index))
          ) do
       nil -> 0
       index -> index + 1
@@ -67,11 +67,11 @@ defmodule CreepyPay.Wallets do
   def get_wallet(wallet_id), do: Repo.get(Wallet, wallet_id)
 
   @doc """
-  Retrieves a wallet by merchant_gem.
+  Retrieves a wallet by merchant_gem_crypton.
   """
-  def get_wallet_by_merchant(merchant_gem) do
+  def get_wallet_by_merchant(merchant_gem_crypton) do
     from(w in Wallet,
-      where: w.merchant_gem == ^merchant_gem,
+      where: w.merchant_gem_crypton == ^merchant_gem_crypton,
       left_join: p in CreepyPay.Payments,
       on: p.stealth_address == w.address,
       where: is_nil(p.id),
@@ -79,6 +79,4 @@ defmodule CreepyPay.Wallets do
     )
     |> Repo.all()
   end
-
-  defp hidden_seed_key, do: Application.get_env(:creepy_pay, :hidden_seed, nil)
 end

@@ -4,26 +4,16 @@ config :creepy_pay,
   generators: [timestamp_type: :utc_datetime]
 
 config :creepy_pay, ecto_repos: [CreepyPay.Repo]
-
 # Configures the endpoint
 config :creepy_pay, CreepyPayWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "127.0.0.1", port: 4000],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [json: CreepyPayWeb.ErrorJSON],
-    layout: false
+    layout: true
   ],
   pubsub_server: CreepyPay.PubSub,
-  live_view: [signing_salt: "rzpanSKW"]
-
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :creepy_pay, CreepyPay.Mailer, adapter: Swoosh.Adapters.Local
+  live_view: [signing_salt: "l7Bz3vHs"]
 
 # Configure esbuild (the version is required)
 config :esbuild,
