@@ -3,13 +3,12 @@ import Config
 config :creepy_pay,
   generators: [timestamp_type: :utc_datetime]
 
-config :creepy_pay, ecto_repos: [CreepyPay.Repo]
 # Configures the endpoint
 config :creepy_pay, CreepyPayWeb.Endpoint,
-  url: [host: "127.0.0.1", port: 4000],
+  url: [host: "127.0.0.1", port: 4000, scheme: "http"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: CreepyPayWeb.ErrorJSON],
+    formats: [json: CreepyPay.AuthErrorHandler],
     layout: true
   ],
   pubsub_server: CreepyPay.PubSub,

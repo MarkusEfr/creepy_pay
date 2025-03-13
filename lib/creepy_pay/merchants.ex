@@ -40,8 +40,9 @@ defmodule CreepyPay.Merchants do
         "email" => email,
         "madness_key" => madness_key
       }) do
+    Logger.info("Registering merchant", email: email, shitty_name: shitty_name)
     gem = resolve_gem_crypton() <> madness_key
-
+    Logger.info("Generated gem", gem: gem)
     with <<^gem::binary-size(32), madness_key_bin::binary-size(32)>> = <<2::128>> <> gem,
          {vector, madness_key_hash} <- {<<2::128>>, Argon2.hash_pwd_salt(madness_key_bin)},
          state_encryption = :crypto.crypto_init(:aes_128_ctr, madness_key_bin, vector, true),
