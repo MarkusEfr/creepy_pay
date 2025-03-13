@@ -13,11 +13,17 @@ defmodule CreepyPayWeb.Router do
 
     plug(Guardian.Plug.VerifyHeader, scheme: "Bearer")
     plug(Guardian.Plug.LoadResource)
+
+    plug(Plug.Parsers,
+      parsers: [:json],
+      pass: ["application/json"],
+      json_decoder: Jason
+    )
   end
 
   scope "/api/merchant", CreepyPayWeb do
     pipe_through(:api)
-    pipe_through(:auth)
+
     # Merchant API
     post("/register", MerchantController, :register_merchant)
     post("/login", MerchantController, :login)

@@ -4,9 +4,9 @@ defmodule CreepyPay.Merchants do
   import Phoenix.Controller, only: [json: 2]
   import Plug.Conn, only: [put_status: 2]
 
-  alias CreepyPay.Repo
   alias Argon2
-
+  alias CreepyPay.Repo
+  alias Faker, as: GemChunk
   require Logger
 
   @gem_len 32
@@ -58,8 +58,6 @@ defmodule CreepyPay.Merchants do
         "email" => email,
         "madness_key" => madness_key
       }) do
-    Logger.info("Registering merchant", email: email, shitty_name: shitty_name)
-
     gem_string = resolve_gem_crypton()
     gem_combined = gem_string <> madness_key
 
@@ -112,19 +110,19 @@ defmodule CreepyPay.Merchants do
     end
   end
 
-  def resolve_gem_crypton() do
-    [
-      Faker.Cat.name(),
-      Faker.Fruit.En.fruit(),
-      Faker.Pizza.style(),
-      Faker.Pokemon.name(),
-      Faker.Superhero.name(),
-      Faker.StarWars.character()
-    ]
-    |> String.slice(0..(@gem_len - 2))
-    |> Enum.shuffle()
-    |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
-    |> Enum.join("-")
-    |> String.downcase()
-  end
+  def resolve_gem_crypton,
+    do:
+      [
+        GemChunk.Cat.name(),
+        GemChunk.Dog.PtBr.characteristic(),
+        GemChunk.Pizza.style(),
+        GemChunk.Pokemon.name(),
+        GemChunk.Superhero.name(),
+        GemChunk.StarWars.character()
+      ]
+      |> Enum.shuffle()
+      |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
+      |> Enum.map_join(&String.slice(&1, 0..@gem_len))
+
+  defp get_len, do: @len
 end

@@ -1,6 +1,6 @@
 defmodule CreepyPayWeb.MerchantController do
   use CreepyPayWeb, :controller
-  alias CreepyPay.{Repo, Merchants, Auth.Guardian}
+  alias CreepyPay.{Auth.Guardian, Repo, Merchants}
   alias Argon2
 
   require Logger
@@ -10,8 +10,6 @@ defmodule CreepyPayWeb.MerchantController do
         "email" => email,
         "madness_key" => madness_key
       }) do
-    Logger.info("Registering merchant", email: email, shitty_name: shitty_name)
-
     gem_string = Merchants.resolve_gem_crypton()
     gem_combined = gem_string <> madness_key
 
@@ -20,9 +18,9 @@ defmodule CreepyPayWeb.MerchantController do
       vector = <<2::128>>
       madness_key_hash = Argon2.hash_pwd_salt(madness_key_bin)
 
-      state_encryption = :crypto.crypto_init(:aes_128_ctr, madness_key_bin, vector, true)
-      gem_crypton = :crypto.crypto_update(state_encryption, gem_combined)
-      :crypto.crypto_update(state_encryption, gem_crypton)
+      state = :crypto.crypto_init(:aes_256_ecb, madness_key_bin, vector, true)
+      encrypted = :crypto.crypto_update(state, gem_combined)
+      gem_crypton = :crypto.crypto_final(state) <> encrypted
 
       merchant = %Merchants{
         merchant_gem_crypton: gem_crypton,
@@ -31,14 +29,25 @@ defmodule CreepyPayWeb.MerchantController do
         madness_key_hash: madness_key_hash
       }
 
-      case Repo.insert(merchant) do
-        {:ok, merchant} ->
-          json(conn, %{merchant: merchant})
+      Logger.debug("[DEBUG] Registering merchant: #{email} (#{shitty_name})")
 
-        {:error, reason} ->
-          conn |> put_status(422) |> json(%{error: inspect(reason)})
+      try do
+        case Repo.insert(merchant) do
+          {:ok, merchant} ->
+            json(conn, %{status: "success", merchant: merchant})
+
+          {:error, changeset} ->
+            Logger.warning("[WARN] Merchant insert failed: #{inspect(changeset)}")
+            conn |> put_status(422) |> json(%{status: "failed", error: inspect(changeset)})
+        end
+      rescue
+        e ->
+          Logger.error("[ERROR] Merchant registration exception: #{inspect(e)}")
+          conn |> put_status(500) |> json(%{error: "Unexpected error occurred"})
       end
     else
+      Logger.warning("[WARN] Invalid key or gem size")
+
       conn
       |> put_status(400)
       |> json(%{error: "Invalid gem or madness_key length"})
@@ -48,7 +57,6 @@ defmodule CreepyPayWeb.MerchantController do
   @doc "Merchant login and JWT generation"
   def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
     with {:ok, merchant} <- Merchants.authenticate_merchant(identifier, madness_key),
-         Logger.info("Merchant authenticated", merchant: merchant),
          {:ok, token, _claims} <-
            Guardian.encode_and_sign(merchant) |> IO.inspect(label: "[DEBUG] Token") do
       json(conn, %{token: token, merchant_gem: merchant.merchant_gem})
