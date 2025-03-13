@@ -98,11 +98,22 @@ defmodule CreepyPay.Merchants do
             m.merchant_gem_crypton == ^identifier
       )
 
-    with %__MODULE__{} = merchant <- Repo.one(query) |> Logger.info("Merchant: #{inspect(&1)}"),
-         true <- Argon2.verify_pass(madness_key, merchant.madness_key_hash) |> Logger.info("Auth: #{inspect(&1)}") do
-      {:ok, merchant}
+    with %__MODULE__{madness_key_hash: madness_key_hash} = merchant <-
+           Repo.one(query),
+         IO.inspect(merchant, label: "[DEBUG] Merchant"),
+         check_madness_key <- Argon2.verify_pass(madness_key, madness_key_hash) do
+      case check_madness_key do
+        true ->
+          Logger.info("Merchant #{merchant.shitty_name} authenticated")
+          {:ok, merchant}
+
+        false ->
+          Logger.info("Merchant #{merchant.shitty_name} failed authentication")
+          {:error, "Invalid credentials"}
+      end
     else
-      reason -> {:error, inspect(reason)}
+      reason ->
+        {:error, "#{inspect(reason)}"}
     end
   end
 

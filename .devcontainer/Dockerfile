@@ -1,58 +1,41 @@
-# Use base Ubuntu image
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG C.UTF-8
 
-# Install dependencies
+# Install deps
 RUN apt-get update && apt-get install -y \
-    curl gnupg apt-transport-https \
-    git build-essential \
-    inotify-tools \
-    wget \
-    libssl-dev \
-    libncurses5-dev \
-    libwxgtk3.0-gtk3-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    libpng-dev \
-    libssh-dev \
-    unixodbc-dev \
-    xsltproc \
-    fop \
-    libxml2-utils \
-    libncurses-dev \
-    libffi-dev \
-    liblzma-dev \
-    zlib1g-dev \
-    libgmp-dev \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    curl git wget unzip gnupg ca-certificates \
+    build-essential libssl-dev libncurses5-dev libwxgtk3.0-gtk3-dev libgl1-mesa-dev libqt5webkit5-dev libssh-dev \
+    libxml2-dev libxslt1-dev libffi-dev libreadline-dev libz-dev libyaml-dev libsqlite3-dev sqlite3 \
+    inotify-tools postgresql-client sudo
 
-# Install ASDF version manager
-RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1
-ENV PATH="/root/.asdf/bin:/root/.asdf/shims:$PATH"
-RUN echo ". $HOME/.asdf/asdf.sh" >> ~/.bashrc
+# Install ASDF
+ENV ASDF_DIR=/root/.asdf
+RUN git clone https://github.com/asdf-vm/asdf.git $ASDF_DIR --branch v0.13.1
+RUN echo '. $ASDF_DIR/asdf.sh' >> /root/.bashrc
 
-# Install Erlang and Elixir via ASDF
-RUN bash -c ". $HOME/.asdf/asdf.sh && \
+# Install Elixir & Erlang via ASDF
+RUN bash -c ". $ASDF_DIR/asdf.sh && \
     asdf plugin add erlang && \
-    asdf plugin add elixir && \
     asdf install erlang 26.2 && \
-    asdf install elixir 1.16.2 && \
     asdf global erlang 26.2 && \
+    asdf plugin add elixir && \
+    asdf install elixir 1.16.2 && \
     asdf global elixir 1.16.2"
 
-# Install Node.js (Phoenix needs it for assets)
-RUN bash -c ". $HOME/.asdf/asdf.sh && \
-    asdf plugin add nodejs && \
-    bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring && \
+# Install GPG deps before nodejs plugin
+RUN apt-get update && apt-get install -y dirmngr gpg curl
+
+# Install Node.js safely via asdf
+RUN bash -c ". $ASDF_DIR/asdf.sh && \
+    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git && \
+    bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring || true && \
     asdf install nodejs 20.11.1 && \
     asdf global nodejs 20.11.1"
 
-# Install Hex & Rebar
-RUN mix local.hex --force && mix local.rebar --force
 
-# Set workdir
+# Set working dir
 WORKDIR /workspace
 
-EXPOSE 4000
+CMD [ "bash" ]
