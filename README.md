@@ -49,15 +49,19 @@
 ---
 
 ## **🛠 API Integration - Plug & Play Payments**
-**Seamlessly integrate CreepyPay into any system** with our robust API.  
 
 | **Method** | **Endpoint** | **Description** |
 |------------|-------------|-----------------|
-| `POST` | `/api/merchant/register` | Register a merchant (anonymous identity supported) |
-| `POST` | `/api/auth/login` | Authenticate merchant |
-| `POST` | `/api/payment/generate` | Create a new payment request |
-| `GET` | `/api/payment/details/:payment_metacore` | Retrieve payment details |
-| `POST` | `/api/payment/claim` | Claim payment securely |
+| `POST`     | `/api/merchant/register` | Register a new merchant using `madness_key` |
+| `POST`     | `/api/merchant/login`    | Authenticate merchant and receive JWT token |
+| `POST`     | `/api/payment/create`    | Create a new payment (with stealth wallet) |
+| `POST`     | `/api/payment/process`   | Process blockchain-based ETH payment |
+| `GET`      | `/api/payment/details/:payment_metacore` | Get full info about a payment by meta ID |
+| `GET`      | `/api/payment/verify/:payment_metacore`  | Verify payment status |
+| `POST`     | `/api/payment/claim`     | Claim payment securely using a signature |
+| `POST`     | `/api/wallet/create`     | Create new stealth wallet for merchant |
+| `GET`      | `/api/wallet/:wallet_id` | Get stealth wallet info |
+| `GET`      | `/api/wallets/:merchant_gem_crypton` | List all merchant wallets |
 
 > 🛠 **Custom integrations available** – tailor CreepyPay to your business needs.  
 
