@@ -3,12 +3,18 @@ defmodule CreepyPayWeb.PaymentController do
   alias CreepyPay.{Payments, StealthPay}
   require Logger
 
-  def create_payment(conn, %{"merchant_gem_crypton" => merchant_gem_crypton, "amount_wei" => amount}) do
-    case Payments.store_payment(%{merchant_gem_crypton: merchant_gem_crypton, amount: amount}) do
+  def create_payment(conn, %{
+        "merchant_gem_crypton" => merchant_gem_crypton,
+        "amount_wei" => amount
+      }) do
+    case StealthPay.generate_payment_request(%{
+           merchant_gem_crypton: merchant_gem_crypton,
+           amount: amount
+         }) do
       {:ok, payment} ->
         json(conn, payment)
 
-      {:error, _reason} ->
+      _ ->
         json(conn, %{error: "Payment creation failed"})
     end
   end

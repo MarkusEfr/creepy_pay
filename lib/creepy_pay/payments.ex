@@ -2,7 +2,6 @@ defmodule CreepyPay.Payments do
   use Ecto.Schema
   import Ecto.Changeset
   alias CreepyPay.Repo
-  alias CreepyPay.Wallets
 
   @primary_key {:payment_metacore, :binary, autogenerate: false}
   @derive {Jason.Encoder,
@@ -35,24 +34,16 @@ defmodule CreepyPay.Payments do
   @doc """
   Creates a new payment and assigns a stealth address dynamically.
   """
-  def store_payment(%{merchant_gem_crypton: merchant_gem_crypton, amount: _amount} = payment) do
-    case Wallets.get_wallet_by_merchant(merchant_gem_crypton) do
-      nil ->
-        {:error, "Merchant wallet not found"}
-
-      _wallet ->
-        stealth_address =
-          Wallets.create_wallet(merchant_gem_crypton) |> elem(1) |> Map.get(:address)
-
-        %__MODULE__{}
-        |> changeset(
-          payment
-          |> Map.put(:payment_metacore, Ecto.UUID.generate())
-          |> Map.put(:stealth_address, stealth_address)
-          |> Map.put(:status, "pending")
-        )
-        |> Repo.insert()
-    end
+  def store_payment(
+        %{merchant_gem_crypton: merchant_gem_crypton, amount: amount, wallet: wallet} = _payment
+      ) do
+    %__MODULE__{
+      payment_metacore: Ecto.UUID.generate(),
+      merchant_gem_crypton: merchant_gem_crypton,
+      amount: amount,
+      stealth_address: wallet.address
+    }
+    |> Repo.insert()
   end
 
   @doc """

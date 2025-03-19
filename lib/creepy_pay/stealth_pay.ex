@@ -5,30 +5,31 @@ defmodule CreepyPay.StealthPay do
   alias QRCode
 
   # Step 1: Generate Payment Request
-  def generate_payment_request(merchant_gem_crypton, amount_wei) do
-    new_payment = %{
-      merchant_gem_crypton: merchant_gem_crypton,
-      amount: amount_wei
-    }
+  def generate_payment_request(
+        %{merchant_gem_crypton: merchant_gem_crypton, amount: amount_wei} = _params
+      ) do
+    %CreepyPay.Wallets.Wallet{address: _address} =
+      wallet = CreepyPay.Wallets.create_wallet(%{merchant_gem_crypton: merchant_gem_crypton})
 
-    {:ok,
-     %CreepyPay.Payments{
-       payment_metacore: _,
-       status: _,
-       merchant_gem_crypton: _,
-       amount: _,
-       stealth_address: _
-       } = _created_payment} = CreepyPay.Payments.store_payment(new_payment)
+    {:ok, _payment} =
+      CreepyPay.Payments.store_payment(%{
+        merchant_gem_crypton: merchant_gem_crypton,
+        amount: amount_wei,
+        wallet: wallet
+      })
   end
 
   # Step 2: Process Payment (Generate Unsigned TX + Ethereum Payment Link + QR Code)
   def process_payment(payment_metacore) do
-    case CreepyPay.Payments.get_payment(payment_metacore) do
+    case CreepyPay.Payments.get_payment(payment_metacore)
+         |> IO.inspect(label: "[DEBUG] Payment") do
       {:ok,
        %CreepyPay.Payments{amount: amount_wei, status: "pending", stealth_address: address} =
            payment}
       when amount_wei > 0 ->
-        with {:ok, unsigned_tx} <- create_unsigned_tx(payment_metacore, address, amount_wei),
+        with {:ok, unsigned_tx} <-
+               create_unsigned_tx(payment_metacore, address, amount_wei)
+               |> IO.inspect(label: "[DEBUG] Unsigned TX"),
              {:ok, eth_payment_link} <- generate_ethereum_payment_link(payment),
              {:ok, qr_base64} <- generate_qr_code(eth_payment_link) do
           payment_data = %{
@@ -53,7 +54,8 @@ defmodule CreepyPay.StealthPay do
 
   # Step 3: Verify Payment Status
   def verify_payment(payment_metacore) do
-    case CreepyPay.Payments.get_payment(payment_metacore) |> IO.inspect(label: "[DEBUG] Payment") do
+    case CreepyPay.Payments.get_payment(payment_metacore)
+         |> IO.inspect(label: "[DEBUG] Payment") do
       {:ok, %{payment_status: status}} -> {:ok, status}
       _ -> {:error, "Payment not found"}
     end
@@ -62,7 +64,11 @@ defmodule CreepyPay.StealthPay do
   # Generates an unsigned transaction for payment processing
   defp create_unsigned_tx(payment_metacore, recipient, amount) do
     encoded_tx =
-      encode_function("processPayment(bytes32,address,uint256)", [payment_metacore, recipient, amount])
+      encode_function("processPayment(bytes32,address,uint256)", [
+        payment_metacore,
+        recipient,
+        amount
+      ])
 
     {:ok,
      %{
@@ -84,6 +90,7 @@ defmodule CreepyPay.StealthPay do
     # Sepolia Testnet
     chain_id = "11155111"
     hashed_payment_id = payment_metacore |> transform_payment_id()
+
     eth_payment_link =
       "ethereum:#{payment_contract}@#{chain_id}/createPayment" <>
         "?payment_metacore=#{hashed_payment_id}" <>

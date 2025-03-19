@@ -5,26 +5,26 @@ defmodule CreepyPay.Wallets do
 
   require Logger
 
-  def create_wallet(merchant_gem_crypton) do
+  def create_wallet(%{merchant_gem_crypton: merchant_gem_crypton}) do
     case generate_wallet_from_node() do
       %{"address" => address, "privateKey" => private_key} ->
         index = get_next_wallet_index(merchant_gem_crypton)
 
         wallet_attrs = %{
-          merchant_gem: merchant_gem_crypton,
+          merchant_gem_crypton: merchant_gem_crypton,
           wallet_index: index,
-          private_key: private_key,
+          private_key_shadow: private_key,
           address: address
         }
 
-        Logger.info("Wallet created: #{inspect(wallet_attrs)}")
+        case wallet_attrs |> Wallet.new() |> Repo.insert() do
+          {:ok, wallet} -> wallet
+          {:error, changeset} -> Logger.error("❌ Wallet creation failed: #{inspect(changeset)}")
+        end
 
-        wallet_attrs
-        |> Wallet.new()
-        |> Repo.insert()
-
-      {:error, reason} ->
-        {:error, reason}
+      err ->
+        Logger.error("❌ Wallet creation failed: #{inspect(err)}")
+        {:error, err}
     end
   end
 
@@ -53,7 +53,10 @@ defmodule CreepyPay.Wallets do
   """
   def get_next_wallet_index(merchant_gem_crypton) do
     case Repo.one(
-           from(w in Wallet, where: w.merchant_gem_crypton == ^merchant_gem_crypton, select: max(w.wallet_index))
+           from(w in Wallet,
+             where: w.merchant_gem_crypton == ^merchant_gem_crypton,
+             select: max(w.wallet_index)
+           )
          ) do
       nil -> 0
       index -> index + 1
