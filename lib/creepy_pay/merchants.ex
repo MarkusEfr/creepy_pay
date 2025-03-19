@@ -55,7 +55,11 @@ defmodule CreepyPay.Merchants do
     case changeset(%__MODULE__{}, merchant) |> Repo.insert() do
       {:ok, merchant} ->
         Logger.info("✅ Merchant #{merchant.shitty_name} registered")
-        {:ok, merchant}
+
+        {:ok,
+         %{
+           merchant: merchant |> Map.put(:merchant_gem_crypton, gem_string)
+         }}
 
       {:error, changeset} ->
         Logger.info("❌ Merchant #{merchant.shitty_name} failed registration")

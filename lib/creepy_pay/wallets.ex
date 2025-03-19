@@ -7,13 +7,12 @@ defmodule CreepyPay.Wallets do
 
   def create_wallet(merchant_gem_crypton) do
     case generate_wallet_from_node() do
-      %{"address" => address, "privateKey" => private_key, "demonical_phrase" => demonical_phrase} ->
+      %{"address" => address, "privateKey" => private_key} ->
         index = get_next_wallet_index(merchant_gem_crypton)
 
         wallet_attrs = %{
           merchant_gem: merchant_gem_crypton,
           wallet_index: index,
-          demonical_phrase: demonical_phrase,
           private_key: private_key,
           address: address
         }

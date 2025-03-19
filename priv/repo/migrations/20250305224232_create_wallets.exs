@@ -5,7 +5,6 @@ defmodule CreepyPay.Repo.Migrations.CreateWallets do
     create table(:wallets) do
       add :merchant_gem_crypton, :binary, null: false
       add :wallet_index, :integer, default: 0, null: false
-      add :mnemonic_demonic, :binary, null: false
       add :address, :string, null: false
       add :private_key_shadow, :binary, null: false
 

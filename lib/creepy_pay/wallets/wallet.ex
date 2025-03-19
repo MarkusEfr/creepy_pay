@@ -6,7 +6,6 @@ defmodule CreepyPay.Wallets.Wallet do
   schema "wallets" do
     field(:merchant_gem_crypton, :binary)
     field(:wallet_index, :integer, default: 0)
-    field(:demonical_phrase, :binary)
     field(:address, :string)
     field(:private_key_shadow, :binary)
 
@@ -23,14 +22,12 @@ defmodule CreepyPay.Wallets.Wallet do
     |> cast(attrs, [
       :merchant_gem_crypton,
       :wallet_index,
-      :demonical_phrase,
       :address,
       :private_key_shadow
     ])
     |> validate_required([
       :merchant_gem_crypton,
       :wallet_index,
-      :demonical_phrase,
       :address,
       :private_key_shadow
     ])
