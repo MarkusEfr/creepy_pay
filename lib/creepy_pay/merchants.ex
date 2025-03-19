@@ -9,14 +9,10 @@ defmodule CreepyPay.Merchants do
   require Logger
 
   @gem_len 32
+  @aes_vector <<2::128>>
 
   @primary_key {:id, :id, autogenerate: true}
-  @derive {Jason.Encoder,
-           only: [
-             :shitty_name,
-             :email,
-             :inserted_at
-           ]}
+  @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at]}
   schema "merchants" do
     field(:merchant_gem_crypton, :binary)
     field(:shitty_name, :string)
@@ -25,7 +21,7 @@ defmodule CreepyPay.Merchants do
     timestamps()
   end
 
-  @doc "Merchant changeset"
+  @doc "Changeset for merchant creation"
   def changeset(merchant, attrs) do
     merchant
     |> cast(attrs, [:merchant_gem_crypton, :shitty_name, :email, :madness_key_hash])
@@ -37,97 +33,88 @@ defmodule CreepyPay.Merchants do
   end
 
   @doc """
-  Registers a merchant with madness_key.
-
-  ## Parameters
-
-  - `shitty_name`: A string of length 3-20
-  - `email`: A string following the regular expression
-    `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$`
-  - `madness_key`: A string of length 32
-
-  ## Returns
-
-  - `{:ok, t()}` if registration is successful
-  - `{:error, binary()}` if registration fails with an error message
-  - `{:error, Ecto.Changeset.t()}` if registration fails with a changeset
+  Registers a merchant with custom encrypted madness_key and encrypted gem string.
   """
-  def register_merchant(conn, %{
+  def register_merchant(%{
         "shitty_name" => shitty_name,
         "email" => email,
         "madness_key" => madness_key
       }) do
     gem_string = resolve_gem_crypton()
-    gem_combined = gem_string <> madness_key
 
-    if byte_size(gem_combined) >= 64 do
-      <<_gem_part::binary-size(32), madness_key_bin::binary-size(32), _::binary>> = gem_combined
-      vector = <<2::128>>
-      madness_key_hash = Argon2.hash_pwd_salt(madness_key_bin)
+    gem_cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
+    gem_encrypted = :crypto.crypto_update(gem_cipher, gem_string)
 
-      state_encryption = :crypto.crypto_init(:aes_128_ctr, madness_key_bin, vector, true)
-      gem_crypton = :crypto.crypto_update(state_encryption, gem_combined)
-      :crypto.crypto_update(state_encryption, gem_crypton)
+    key_cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
+    madness_key_encrypted = :crypto.crypto_update(key_cipher, madness_key)
+    madness_key_hash = Base.encode64(madness_key_encrypted)
 
-      merchant = %__MODULE__{
-        merchant_gem_crypton: gem_crypton,
-        shitty_name: shitty_name,
-        email: email,
-        madness_key_hash: madness_key_hash
-      }
+    merchant = %__MODULE__{
+      merchant_gem_crypton: gem_encrypted,
+      shitty_name: shitty_name,
+      email: email,
+      madness_key_hash: Base.encode64(madness_key_encrypted)
+    }
 
-      case Repo.insert(merchant) do
-        {:ok, merchant} ->
-          json(conn, %{merchant: merchant})
+    case Repo.insert(merchant) do
+      {:ok, merchant} ->
+        Logger.info("✅ Merchant #{merchant.shitty_name} registered")
+        {:ok, merchant}
 
-        {:error, reason} ->
-          conn |> put_status(422) |> json(%{error: inspect(reason)})
-      end
-    else
-      conn
-      |> put_status(400)
-      |> json(%{error: "Invalid gem or madness_key length"})
+      {:error, reason} ->
+        Logger.info("❌ Merchant #{merchant.shitty_name} failed registration")
+        {:error, reason}
     end
   end
 
+  @doc """
+  Authenticates a merchant using custom encrypted madness_key.
+  """
   def authenticate_merchant(identifier, madness_key) do
-    query =
-      from(m in __MODULE__,
-        where:
-          m.email == ^identifier or m.shitty_name == ^identifier or
-            m.merchant_gem_crypton == ^identifier
-      )
+    cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
+    encrypted = :crypto.crypto_update(cipher, madness_key)
 
-    with %__MODULE__{madness_key_hash: madness_key_hash} = merchant <-
-           Repo.one(query),
-         IO.inspect(merchant, label: "[DEBUG] Merchant"),
-         check_madness_key <- Argon2.verify_pass(madness_key, madness_key_hash) do
-      case check_madness_key do
-        true ->
-          Logger.info("Merchant #{merchant.shitty_name} authenticated")
-          {:ok, merchant}
-
-        false ->
-          Logger.info("Merchant #{merchant.shitty_name} failed authentication")
-          {:error, "Invalid credentials"}
-      end
+    if byte_size(madness_key) != 32 do
+      {:error, "madness_key must be exactly 32 bytes"}
     else
-      reason ->
-        {:error, "#{inspect(reason)}"}
+      query =
+        from(m in __MODULE__,
+          where:
+            m.email == ^identifier or m.shitty_name == ^identifier or
+              m.merchant_gem_crypton == ^identifier
+        )
+
+      case Repo.one(query) do
+        %__MODULE__{madness_key_hash: encoded_hash} = merchant ->
+          cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
+          encrypted = :crypto.crypto_update(cipher, madness_key)
+
+          if Base.encode64(encrypted) == encoded_hash do
+            Logger.info("✅ Merchant #{merchant.shitty_name} authenticated")
+            {:ok, merchant}
+          else
+            Logger.info("❌ Merchant #{merchant.shitty_name} failed authentication")
+            {:error, "Invalid credentials"}
+          end
+
+        nil ->
+          {:error, "Merchant not found"}
+      end
     end
   end
 
-  def resolve_gem_crypton,
-    do:
-      [
-        GemChunk.Cat.name(),
-        GemChunk.Food.dish(),
-        GemChunk.Pizza.style(),
-        GemChunk.Pokemon.name(),
-        GemChunk.Superhero.name(),
-        GemChunk.StarWars.character()
-      ]
-      |> Enum.shuffle()
-      |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
-      |> Enum.map_join(&String.slice(&1, 0..@gem_len))
+  @doc "Generates a random merchant_gem_crypton string"
+  def resolve_gem_crypton do
+    [
+      GemChunk.Cat.name(),
+      GemChunk.Food.dish(),
+      GemChunk.Pizza.style(),
+      GemChunk.Pokemon.name(),
+      GemChunk.Superhero.name(),
+      GemChunk.StarWars.character()
+    ]
+    |> Enum.shuffle()
+    |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
+    |> Enum.map_join(&String.slice(&1, 0..@gem_len))
+  end
 end

@@ -1,7 +1,6 @@
 defmodule CreepyPayWeb.MerchantController do
   use CreepyPayWeb, :controller
 
-  alias Argon2
   alias CreepyPay.{Auth.Guardian, Merchants, Repo}
 
   require Logger
@@ -22,53 +21,30 @@ defmodule CreepyPayWeb.MerchantController do
   - `{:error, binary()}` if registration fails with an error message
   - `{:error, Ecto.Changeset.t()}` if registration fails with a changeset
   """
-  def register(conn, %{
-        "shitty_name" => shitty_name,
-        "email" => email,
-        "madness_key" => madness_key
-      }) do
-    gem_string = Merchants.resolve_gem_crypton()
-    gem_combined = gem_string <> madness_key
+  def register(
+        conn,
+        %{
+          "shitty_name" => shitty_name,
+          "email" => email,
+          "madness_key" => madness_key
+        } = params
+      ) do
+    case Merchants.register_merchant(params) do
+      {:ok, merchant} ->
+        json(conn, %{status: "success", merchant: merchant})
 
-    if byte_size(gem_combined) >= 64 do
-      <<_gem_part::binary-size(32), madness_key_bin::binary-size(32), _::binary>> = gem_combined
-      vector = <<2::128>>
-      madness_key_hash = Argon2.hash_pwd_salt(madness_key_bin)
-
-      state_encryption = :crypto.crypto_init(:aes_256_ecb, madness_key_bin, vector, true)
-      gem_crypton = :crypto.crypto_update(state_encryption, gem_combined)
-      :crypto.crypto_update(state_encryption, gem_crypton)
-
-      merchant = %Merchants{
-        merchant_gem_crypton: gem_crypton,
-        shitty_name: shitty_name,
-        email: email,
-        madness_key_hash: madness_key_hash
-      }
-
-      case Repo.insert(merchant) do
-        {:ok, merchant} ->
-          json(conn, %{status: "success", merchant: merchant})
-
-        {:error, %Ecto.Changeset{} = changeset} ->
-          json(conn, %{status: "failed", error: inspect(changeset.errors)})
-
-        {:error, reason} ->
-          json(conn, %{status: "failed", error: inspect(reason)})
-      end
-    else
-      conn
-      |> put_status(400)
-      |> json(%{error: "Invalid gem or madness_key length"})
+      {:error, reason} ->
+        json(conn, %{status: "failed", reason: reason})
     end
   end
 
   @doc "Merchant login and JWT generation"
   def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
-    with {:ok, merchant} <- Merchants.authenticate_merchant(identifier, madness_key),
+    with {:ok, merchant} <-
+           Merchants.authenticate_merchant(identifier, madness_key),
          {:ok, token, claims} <-
            Guardian.encode_and_sign(merchant) |> IO.inspect(label: "[DEBUG] Token") do
-      json(conn, %{token: token, merchant_gem: merchant.merchant_gem})
+      json(conn, %{token: token, merchant: merchant})
     else
       {:error, _} -> json(conn, %{error: "Invalid credentials"})
     end
