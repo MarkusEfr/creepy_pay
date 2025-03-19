@@ -49,21 +49,21 @@ defmodule CreepyPay.Merchants do
     madness_key_encrypted = :crypto.crypto_update(key_cipher, madness_key)
     madness_key_hash = Base.encode64(madness_key_encrypted)
 
-    merchant = %__MODULE__{
+    merchant = %{
       merchant_gem_crypton: gem_encrypted,
       shitty_name: shitty_name,
       email: email,
       madness_key_hash: Base.encode64(madness_key_encrypted)
     }
 
-    case Repo.insert(merchant) do
+    case changeset(%__MODULE__{}, merchant) |> Repo.insert() do
       {:ok, merchant} ->
         Logger.info("✅ Merchant #{merchant.shitty_name} registered")
         {:ok, merchant}
 
-      {:error, reason} ->
+      {:error, changeset} ->
         Logger.info("❌ Merchant #{merchant.shitty_name} failed registration")
-        {:error, reason}
+        {:error, changeset.errors |> Enum.map(fn {k, {v, _}} -> "#{k}: #{v}" end)}
     end
   end
 
