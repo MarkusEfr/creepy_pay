@@ -1,7 +1,7 @@
 defmodule CreepyPayWeb.MerchantController do
   use CreepyPayWeb, :controller
 
-  alias CreepyPay.{Auth.Guardian, Merchants, Repo}
+  alias CreepyPay.{Auth.Guardian, Merchants}
 
   require Logger
 
@@ -24,9 +24,9 @@ defmodule CreepyPayWeb.MerchantController do
   def register(
         conn,
         %{
-          "shitty_name" => shitty_name,
-          "email" => email,
-          "madness_key" => madness_key
+          "shitty_name" => _shitty_name,
+          "email" => _email,
+          "madness_key" => _madness_key
         } = params
       ) do
     case Merchants.register_merchant(params) do
@@ -42,7 +42,7 @@ defmodule CreepyPayWeb.MerchantController do
   def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
     with {:ok, merchant} <-
            Merchants.authenticate_merchant(identifier, madness_key),
-         {:ok, token, claims} <-
+         {:ok, token, _claims} <-
            Guardian.encode_and_sign(merchant) |> IO.inspect(label: "[DEBUG] Token") do
       json(conn, %{token: token, merchant: merchant})
     else

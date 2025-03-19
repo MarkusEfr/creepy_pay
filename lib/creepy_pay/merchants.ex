@@ -1,9 +1,6 @@
 defmodule CreepyPay.Merchants do
   use Ecto.Schema
   import Ecto.{Changeset, Query}
-  import Phoenix.Controller, only: [json: 2]
-  import Plug.Conn, only: [put_status: 2]
-
   alias CreepyPay.Repo
   alias Faker, as: GemChunk
   require Logger
@@ -47,7 +44,6 @@ defmodule CreepyPay.Merchants do
 
     key_cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
     madness_key_encrypted = :crypto.crypto_update(key_cipher, madness_key)
-    madness_key_hash = Base.encode64(madness_key_encrypted)
 
     merchant = %{
       merchant_gem_crypton: gem_encrypted,
@@ -71,9 +67,6 @@ defmodule CreepyPay.Merchants do
   Authenticates a merchant using custom encrypted madness_key.
   """
   def authenticate_merchant(identifier, madness_key) do
-    cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
-    encrypted = :crypto.crypto_update(cipher, madness_key)
-
     if byte_size(madness_key) != 32 do
       {:error, "madness_key must be exactly 32 bytes"}
     else
