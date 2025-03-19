@@ -9,7 +9,7 @@ defmodule CreepyPay.Merchants do
   @aes_vector <<2::128>>
 
   @primary_key {:id, :id, autogenerate: true}
-  @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at]}
+  @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at, :merchant_gem_crypton]}
   schema "merchants" do
     field(:merchant_gem_crypton, :binary)
     field(:shitty_name, :string)
@@ -84,7 +84,8 @@ defmodule CreepyPay.Merchants do
 
           if Base.encode64(encrypted) == encoded_hash do
             Logger.info("✅ Merchant #{merchant.shitty_name} authenticated")
-            {:ok, merchant}
+            {:ok, merchant_gem_decrypted} = decrypt_merchant_gem(merchant, madness_key)
+            {:ok, %{merchant | merchant_gem_crypton: merchant_gem_decrypted}}
           else
             Logger.info("❌ Merchant #{merchant.shitty_name} failed authentication")
             {:error, "Invalid credentials"}
@@ -109,5 +110,19 @@ defmodule CreepyPay.Merchants do
     |> Enum.shuffle()
     |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
     |> Enum.map_join(&String.slice(&1, 0..@gem_len))
+  end
+
+  @doc """
+  Decrypts a merchant's encrypted gem_crypton using their madness_key.
+  """
+  def decrypt_merchant_gem(%__MODULE__{merchant_gem_crypton: crypton}, madness_key)
+      when is_binary(crypton) and is_binary(madness_key) do
+    if byte_size(madness_key) != 32 do
+      {:error, "madness_key must be exactly 32 bytes"}
+    else
+      cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
+      decrypted = :crypto.crypto_update(cipher, crypton)
+      {:ok, decrypted}
+    end
   end
 end
