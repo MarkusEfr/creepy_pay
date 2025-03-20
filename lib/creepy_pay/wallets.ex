@@ -19,7 +19,7 @@ defmodule CreepyPay.Wallets do
 
         case wallet_attrs |> Wallet.new() |> Repo.insert() do
           {:ok, wallet} -> wallet
-          {:error, changeset} -> Logger.error("❌ Wallet creation failed: #{inspect(changeset)}")
+          {:error, changeset} -> {:error, changeset.errors}
         end
 
       err ->

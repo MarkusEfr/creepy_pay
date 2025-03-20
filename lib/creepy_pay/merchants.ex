@@ -54,15 +54,12 @@ defmodule CreepyPay.Merchants do
 
     case changeset(%__MODULE__{}, merchant) |> Repo.insert() do
       {:ok, merchant} ->
-        Logger.info("✅ Merchant #{merchant.shitty_name} registered")
-
         {:ok,
          %{
            merchant: merchant |> Map.put(:merchant_gem_crypton, gem_string)
          }}
 
       {:error, changeset} ->
-        Logger.info("❌ Merchant #{merchant.shitty_name} failed registration")
         {:error, changeset.errors |> Enum.map(fn {k, {v, _}} -> "#{k}: #{v}" end)}
     end
   end
@@ -87,11 +84,9 @@ defmodule CreepyPay.Merchants do
           encrypted = :crypto.crypto_update(cipher, madness_key)
 
           if Base.encode64(encrypted) == encoded_hash do
-            Logger.info("✅ Merchant #{merchant.shitty_name} authenticated")
             {:ok, merchant_gem_decrypted} = decrypt_merchant_gem(merchant, madness_key)
             {:ok, %{merchant | merchant_gem_crypton: merchant_gem_decrypted}}
           else
-            Logger.info("❌ Merchant #{merchant.shitty_name} failed authentication")
             {:error, "Invalid credentials"}
           end
 

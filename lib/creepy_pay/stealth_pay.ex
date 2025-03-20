@@ -1,10 +1,10 @@
 defmodule CreepyPay.StealthPay do
   require Logger
-  alias Finch
-  alias Jason
   alias QRCode
 
-  # Step 1: Generate Payment Request
+  @chain_id "11155111"
+  @payment_contract Application.compile_env(:creepy_pay, :payment_processor)
+
   def generate_payment_request(
         %{merchant_gem_crypton: merchant_gem_crypton, amount: amount_wei} = _params
       ) do
@@ -19,148 +19,74 @@ defmodule CreepyPay.StealthPay do
       })
   end
 
-  # Step 2: Process Payment (Generate Unsigned TX + Ethereum Payment Link + QR Code)
   def process_payment(payment_metacore) do
-    case CreepyPay.Payments.get_payment(payment_metacore)
-         |> IO.inspect(label: "[DEBUG] Payment") do
-      {:ok,
-       %CreepyPay.Payments{amount: amount_wei, status: "pending", stealth_address: address} =
-           payment}
-      when amount_wei > 0 ->
-        with {:ok, unsigned_tx} <-
-               create_unsigned_tx(payment_metacore, address, amount_wei)
-               |> IO.inspect(label: "[DEBUG] Unsigned TX"),
-             {:ok, eth_payment_link} <- generate_ethereum_payment_link(payment),
-             {:ok, qr_base64} <- generate_qr_code(eth_payment_link) do
-          payment_data = %{
-            unsigned_tx: unsigned_tx,
-            eth_payment_link: eth_payment_link,
-            amount: amount_wei,
-            qr_code: qr_base64
-          }
+    with {:ok, payment} <- CreepyPay.Payments.get_payment(payment_metacore),
+         %{
+           amount: amount_wei,
+           stealth_address: address,
+           status: "pending"
+         } <- payment,
+         true <- amount_wei != "0" do
+      hashed_payment_id = hash_metacore(payment_metacore)
 
-          {:ok, payment_data}
-        else
-          {:error, msg} -> {:error, "Failed to process payment: #{inspect(msg)}"}
-        end
+      {result, exit_code} =
+        System.cmd(
+          "node",
+          [
+            "assets/js/payment_contractor.mjs",
+            "create_payment",
+            hashed_payment_id,
+            address,
+            amount_wei
+          ],
+          env: [
+            {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
+            {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
+            {"PAYMENT_PROCESSOR", get_payment_processor()}
+          ]
+        )
 
-      {:ok, _} ->
-        {:error, "Payment already processed"}
+      if exit_code != 0 do
+        Logger.error("JavaScript call failed: #{result}")
+        {:error, "On-chain createPayment failed"}
+      else
+        tx_hash = String.trim(result)
+        Logger.info("createPayment TX sent: #{tx_hash}")
 
-      {:error, _} ->
-        {:error, "Payment not found"}
+        eth_link =
+          "ethereum:#{@payment_contract}@#{@chain_id}/createPayment" <>
+            "?txHash=#{tx_hash}"
+
+        {:ok, qr_code} = generate_qr_code(eth_link)
+
+        {:ok,
+         %{
+           eth_payment_link: eth_link,
+           qr_code: qr_code,
+           tx_hash: tx_hash
+         }}
+      end
+    else
+      {:error, _} -> {:error, "Payment not found"}
+      %{} -> {:error, "Payment already processed"}
+      _ -> {:error, "Invalid payment or zero amount"}
     end
   end
 
-  # Step 3: Verify Payment Status
-  def verify_payment(payment_metacore) do
-    case CreepyPay.Payments.get_payment(payment_metacore)
-         |> IO.inspect(label: "[DEBUG] Payment") do
-      {:ok, %{payment_status: status}} -> {:ok, status}
-      _ -> {:error, "Payment not found"}
-    end
+  defp hash_metacore(payment_metacore) do
+    payment_metacore
+    |> String.replace("-", "")
+    |> String.downcase()
+    |> then(&:crypto.hash(:sha3_256, &1))
+    |> Base.encode16(case: :lower)
+    |> then(&("0x" <> &1))
   end
 
-  # Generates an unsigned transaction for payment processing
-  defp create_unsigned_tx(payment_metacore, recipient, amount) do
-    encoded_tx =
-      encode_function("processPayment(bytes32,address,uint256)", [
-        payment_metacore,
-        recipient,
-        amount
-      ])
-
-    {:ok,
-     %{
-       "to" => get_payment_processor(),
-       "gas" => "0x5208",
-       "gasPrice" => "0x3B9ACA00",
-       "value" => "0x" <> amount,
-       "data" => encoded_tx
-     }}
-  end
-
-  defp generate_ethereum_payment_link(%{
-         payment_metacore: payment_metacore,
-         amount: amount_wei,
-         merchant_gem_crypton: _merchant_gem,
-         stealth_address: address
-       }) do
-    payment_contract = get_payment_processor()
-    # Sepolia Testnet
-    chain_id = "11155111"
-    hashed_payment_id = payment_metacore |> transform_payment_id()
-
-    eth_payment_link =
-      "ethereum:#{payment_contract}@#{chain_id}/createPayment" <>
-        "?payment_metacore=#{hashed_payment_id}" <>
-        "&stealth_address=#{address}" <>
-        "&value=#{amount_wei}"
-
-    {:ok, eth_payment_link}
-  end
-
-  def generate_unlock_time(hours_from_now) do
-    DateTime.utc_now()
-    # Convert hours to seconds
-    |> DateTime.add(hours_from_now * 3600, :second)
-    |> DateTime.to_unix()
-  end
-
-  defp generate_qr_code(eth_payment_link) do
-    qr_png =
-      eth_payment_link
-      |> QRCode.create()
-      |> QRCode.render(:png, %QRCode.Render.PngSettings{
-        background_color: {11, 214, 106},
-        scale: 5
-      })
-
-    {:ok, _} = QRCode.to_base64(qr_png)
-  end
-
-  # Encodes contract function calls for Ethereum transactions
-  defp encode_function(function_name, args) do
-    string_function_name = to_string(function_name)
-
-    selector =
-      :sha3_256
-      |> :crypto.hash(string_function_name)
-      |> binary_part(0, 4)
-      |> Base.encode16(case: :lower)
-
-    encoded_args =
-      Enum.map(args, fn
-        arg when is_integer(arg) ->
-          Integer.to_string(arg, 16) |> String.pad_leading(64, "0")
-
-        arg when is_integer(arg) ->
-          Integer.to_string(arg, 16) |> String.pad_leading(64, "0")
-
-        # Convert Decimal to integer
-        arg when is_struct(arg, Decimal) ->
-          Decimal.to_integer(arg)
-
-        arg when is_binary(arg) ->
-          arg
-
-        arg ->
-          raise ArgumentError, "Unsupported argument type: #{inspect(arg)}"
-      end)
-      |> Enum.map_join("-")
-
-    "0x" <> selector <> encoded_args
-  end
-
-  defp transform_payment_id(payment_metacore) do
-    # Remove hyphens and downcase to ensure uniformity
-    cleaned_id = String.replace(payment_metacore, "-", "") |> String.downcase()
-
-    # Hash the cleaned ID using SHA3-256
-    hash = :crypto.hash(:sha3_256, cleaned_id)
-
-    # Convert binary hash to hex string with "0x" prefix for Solidity compatibility
-    "0x" <> Base.encode16(hash, case: :lower)
+  defp generate_qr_code(link) do
+    link
+    |> QRCode.create()
+    |> QRCode.render(:png, %QRCode.Render.PngSettings{scale: 4})
+    |> QRCode.to_base64()
   end
 
   defp get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor, nil)

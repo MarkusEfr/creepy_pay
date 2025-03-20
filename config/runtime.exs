@@ -20,7 +20,7 @@ source!([
 # If you use `mix release`, you need to explicitly enable the server
 # by passing the PHX_SERVER=true when you start it:
 #
-    # PHX_SERVER=true
+# PHX_SERVER=true
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
@@ -40,12 +40,6 @@ private_key =
 
 hidden_seed =
   env!("HIDDEN_SEED") || (Logger.error("❌ Missing HIDDEN_SEED") && raise "Missing HIDDEN_SEED")
-
-Logger.info("Using RPC_URL: #{rpc_url}")
-Logger.info("Using PAYMENT_PROCESSOR: #{payment_processor}")
-Logger.info("Using PRIVATE_KEY: #{private_key}")
-Logger.info("Using CREEPY_WALLET: #{creepy_wallet}")
-Logger.info("Using HIDDEN_SEED: #{hidden_seed}")
 
 config :creepy_pay, :rpc_url, rpc_url
 config :creepy_pay, :payment_processor, payment_processor
