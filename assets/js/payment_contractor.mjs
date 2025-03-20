@@ -20,6 +20,20 @@ const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 // CLI args
 const [, , command, paymentId, stealthWallet, value] = process.argv;
 
+if (command === 'encode_link') {
+    const iface = new ethers.Interface([
+        "function createPayment(bytes32,address)"
+    ]);
+
+    const encoded = iface.encodeFunctionData("createPayment", [
+        paymentId,
+        stealthWallet
+    ]);
+
+    console.log(encoded);
+    process.exit(0);
+}
+
 if (command === 'create_payment') {
     try {
         const tx = await contract.createPayment(paymentId, stealthWallet, {

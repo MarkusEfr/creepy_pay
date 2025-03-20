@@ -3,7 +3,6 @@ defmodule CreepyPay.StealthPay do
   alias QRCode
 
   @chain_id "11155111"
-  @payment_contract Application.compile_env(:creepy_pay, :payment_processor)
 
   def generate_payment_request(
         %{merchant_gem_crypton: merchant_gem_crypton, amount: amount_wei} = _params
@@ -29,15 +28,16 @@ defmodule CreepyPay.StealthPay do
          true <- amount_wei != "0" do
       hashed_payment_id = hash_metacore(payment_metacore)
 
-      {result, exit_code} =
+      Logger.info("Processing payment: #{payment_metacore} with steth address: #{address}")
+
+      {call_data, 0} =
         System.cmd(
           "node",
           [
             "assets/js/payment_contractor.mjs",
-            "create_payment",
+            "encode_link",
             hashed_payment_id,
-            address,
-            amount_wei
+            address
           ],
           env: [
             {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
@@ -46,26 +46,20 @@ defmodule CreepyPay.StealthPay do
           ]
         )
 
-      if exit_code != 0 do
-        Logger.error("JavaScript call failed: #{result}")
-        {:error, "On-chain createPayment failed"}
-      else
-        tx_hash = String.trim(result)
-        Logger.info("createPayment TX sent: #{tx_hash}")
+      call_data = String.trim(call_data)
 
-        eth_link =
-          "ethereum:#{@payment_contract}@#{@chain_id}/createPayment" <>
-            "?txHash=#{tx_hash}"
+      eth_link =
+        "ethereum:#{get_payment_processor()}@#{@chain_id}?" <>
+          "value=#{amount_wei}&data=#{call_data}"
 
-        {:ok, qr_code} = generate_qr_code(eth_link)
+      {:ok, qr_code} = generate_qr_code(eth_link)
 
-        {:ok,
-         %{
-           eth_payment_link: eth_link,
-           qr_code: qr_code,
-           tx_hash: tx_hash
-         }}
-      end
+      {:ok,
+       %{
+         eth_payment_link: eth_link,
+         qr_code: qr_code,
+         data: call_data
+       }}
     else
       {:error, _} -> {:error, "Payment not found"}
       %{} -> {:error, "Payment already processed"}
@@ -85,7 +79,11 @@ defmodule CreepyPay.StealthPay do
   defp generate_qr_code(link) do
     link
     |> QRCode.create()
-    |> QRCode.render(:png, %QRCode.Render.PngSettings{scale: 4})
+    |> QRCode.render(:png, %QRCode.Render.PngSettings{
+      scale: 4,
+      qrcode_color: {0, 128, 0},
+      background_color: {255, 255, 255}
+    })
     |> QRCode.to_base64()
   end
 
