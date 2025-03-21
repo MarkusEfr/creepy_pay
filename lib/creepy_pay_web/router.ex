@@ -30,12 +30,6 @@ defmodule CreepyPayWeb.Router do
     )
   end
 
-  scope "/", CreepyPayWeb do
-    pipe_through(:browser)
-
-    live("/pay/:payment_metacore", PaymentLive.Index)
-  end
-
   scope "/api/merchant", CreepyPayWeb do
     pipe_through(:api)
 
