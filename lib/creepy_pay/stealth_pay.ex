@@ -28,7 +28,7 @@ defmodule CreepyPay.StealthPay do
          true <- amount_wei != "0" do
       hashed_payment_id = hash_metacore(payment_metacore)
 
-      Logger.info("Processing payment: #{payment_metacore} with steth address: #{address}")
+      Logger.info("Processing payment: #{payment_metacore} to stealth wallet: #{address}")
 
       {call_data, 0} =
         System.cmd(
