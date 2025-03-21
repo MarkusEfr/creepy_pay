@@ -1,5 +1,14 @@
 defmodule CreepyPayWeb.Router do
   use CreepyPayWeb, :router
+  import Phoenix.LiveView.Router
+
+  pipeline :browser do
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:put_root_layout, {CreepyPayWeb.Layouts, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+  end
 
   pipeline :api do
     plug(:accepts, ["json"])
@@ -19,6 +28,12 @@ defmodule CreepyPayWeb.Router do
       pass: ["application/json"],
       json_decoder: Jason
     )
+  end
+
+  scope "/", CreepyPayWeb do
+    pipe_through(:browser)
+
+    live("/pay/:payment_metacore", PaymentLive.Index)
   end
 
   scope "/api/merchant", CreepyPayWeb do

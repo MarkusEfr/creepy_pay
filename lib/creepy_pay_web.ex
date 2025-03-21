@@ -49,12 +49,54 @@ defmodule CreepyPayWeb do
     end
   end
 
+  def live_component do
+    quote do
+      use Phoenix.LiveComponent
+      unquote(view_helpers())
+    end
+  end
+
+  def html do
+    quote do
+      use Phoenix.Component
+
+      use Phoenix.VerifiedRoutes,
+        endpoint: CreepyPayWeb.Endpoint,
+        router: CreepyPayWeb.Router,
+        statics: CreepyPayWeb.static_paths()
+
+      import Phoenix.LiveView.Helpers
+      import Phoenix.Component
+
+      alias CreepyPayWeb.Router.Helpers, as: Routes
+    end
+  end
+
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
         endpoint: CreepyPayWeb.Endpoint,
         router: CreepyPayWeb.Router,
         statics: CreepyPayWeb.static_paths()
+    end
+  end
+
+  def live_view do
+    quote do
+      use Phoenix.LiveView,
+        layout: {CreepyPayWeb.Layouts, :root}
+
+      unquote(view_helpers())
+    end
+  end
+
+  defp view_helpers do
+    quote do
+      import Phoenix.HTML
+      import Phoenix.LiveView.Helpers
+      import CreepyPayWeb.CoreComponents
+      import CreepyPayWeb.Gettext
+      alias CreepyPayWeb.Router.Helpers, as: Routes
     end
   end
 

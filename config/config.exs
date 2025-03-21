@@ -10,11 +10,10 @@ config :creepy_pay, CreepyPayWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: CreepyPayWeb.ErrorJSON],
-    layout: false
+    formats: [json: CreepyPayWeb.ErrorJSON]
   ],
   pubsub_server: CreepyPay.PubSub,
-  live_view: [signing_salt: "rzpanSKW"]
+  live_view: [layout: {CreepyPayWeb.Layouts, :root}, signing_salt: "rzpanSKW"]
 
 # Configures the mailer
 #
