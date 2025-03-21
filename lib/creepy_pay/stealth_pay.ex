@@ -28,16 +28,17 @@ defmodule CreepyPay.StealthPay do
          true <- amount_wei != "0" do
       hashed_payment_id = hash_metacore(payment_metacore)
 
-      Logger.info("Processing payment: #{payment_metacore} to stealth wallet: #{address}")
+      Logger.info("Processing payment: #{hashed_payment_id} related to stealth wallet: #{address}")
 
       {call_data, 0} =
         System.cmd(
           "node",
           [
             "assets/js/payment_contractor.mjs",
-            "encode_link",
+            "invokeDrop",
             hashed_payment_id,
-            address
+            address,
+            amount_wei
           ],
           env: [
             {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},

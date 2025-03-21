@@ -20,23 +20,19 @@ const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 // CLI args
 const [, , command, paymentId, stealthWallet, value] = process.argv;
 
-if (command === 'encode_link') {
+if (command === 'invokeDrop') {
     const iface = new ethers.Interface([
-        "function createPayment(bytes32,address)"
+        "function invokeDrop(bytes32,address)"
     ]);
 
-    const encoded = iface.encodeFunctionData("createPayment", [
+    const encoded = iface.encodeFunctionData("invokeDrop", [
         paymentId,
         stealthWallet
     ]);
 
     console.log(encoded);
-    process.exit(0);
-}
-
-if (command === 'create_payment') {
     try {
-        const tx = await contract.createPayment(paymentId, stealthWallet, {
+        const tx = await contract.invokeDrop(paymentId, stealthWallet, {
             value: ethers.toBigInt(value),
         });
 

@@ -1,8 +1,42 @@
 [
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "curseStatus",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "FailedCall",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "needed",
+                "type": "uint256"
+            }
+        ],
+        "name": "InsufficientBalance",
+        "type": "error"
     },
     {
         "inputs": [
@@ -36,14 +70,77 @@
                 "type": "bytes32"
             },
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "shadowWallet",
+                "type": "address"
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
             }
         ],
-        "name": "OwnerWithdrawn",
+        "name": "DropInvoked",
         "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "HexLifted",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "shadowWallet",
+                "type": "address"
+            }
+        ],
+        "name": "invokeDrop",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "LockCursed",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "lockInDarkness",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "anonymous": false,
@@ -76,7 +173,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "recipient",
+                "name": "to",
                 "type": "address"
             },
             {
@@ -86,8 +183,28 @@
                 "type": "uint256"
             }
         ],
-        "name": "PaymentClaimed",
+        "name": "ReleasedFromDarkness",
         "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "releaseFromShadow",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "anonymous": false,
@@ -97,59 +214,9 @@
                 "internalType": "bytes32",
                 "name": "paymentId",
                 "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "stealthWallet",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
             }
         ],
-        "name": "PaymentCreated",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
-                "indexed": false,
-                "internalType": "bool",
-                "name": "status",
-                "type": "bool"
-            }
-        ],
-        "name": "PaymentFrozen",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "newRecipient",
-                "type": "address"
-            }
-        ],
-        "name": "PaymentTransferred",
+        "name": "SpecterMarked",
         "type": "event"
     },
     {
@@ -158,14 +225,9 @@
                 "internalType": "bytes32",
                 "name": "paymentId",
                 "type": "bytes32"
-            },
-            {
-                "internalType": "bytes",
-                "name": "signature",
-                "type": "bytes"
             }
         ],
-        "name": "claimPayment",
+        "name": "traceSpecter",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -173,35 +235,12 @@
     {
         "inputs": [
             {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
                 "internalType": "address",
-                "name": "stealthWallet",
+                "name": "newOwner",
                 "type": "address"
             }
         ],
-        "name": "createPayment",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "newRecipient",
-                "type": "address"
-            }
-        ],
-        "name": "forceTransferPayment",
+        "name": "transferOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -214,12 +253,79 @@
                 "type": "bytes32"
             }
         ],
-        "name": "getStealthWallet",
+        "name": "getCurse",
+        "outputs": [
+            {
+                "internalType": "enum CreepyPay.Curse",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "paymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getShadow",
         "outputs": [
             {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "hexUnlocked",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "ledger",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "shadowWallet",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "enum CreepyPay.Curse",
+                "name": "status",
+                "type": "uint8"
             }
         ],
         "stateMutability": "view",
@@ -246,26 +352,11 @@
                 "type": "bytes32"
             }
         ],
-        "name": "payments",
+        "name": "specterConfirmed",
         "outputs": [
             {
-                "internalType": "address",
-                "name": "stealthWallet",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            },
-            {
                 "internalType": "bool",
-                "name": "claimed",
-                "type": "bool"
-            },
-            {
-                "internalType": "bool",
-                "name": "frozen",
+                "name": "",
                 "type": "bool"
             }
         ],
@@ -273,44 +364,6 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "renounceOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bool",
-                "name": "status",
-                "type": "bool"
-            }
-        ],
-        "name": "setPaymentFrozen",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "newOwner",
-                "type": "address"
-            }
-        ],
-        "name": "transferOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "bytes32",
@@ -318,9 +371,15 @@
                 "type": "bytes32"
             }
         ],
-        "name": "withdrawUnclaimedPayment",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "name": "traceBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     }
 ]
