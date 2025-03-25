@@ -46,7 +46,7 @@ defmodule CreepyPayWeb.Router do
     # create payment
     post("/invoke-drop", PaymentController, :invoke_drop)
     # confirm by backend
-    post("/trace-specter/:payment_metacore", PaymentController, :trace_specter)
+    post("/trace-specter", PaymentController, :trace_specter)
     # freeze
     post("/curse-status/:payment_metacore", PaymentController, :curse_status)
     # unlock cursed

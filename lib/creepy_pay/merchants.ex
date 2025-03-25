@@ -2,14 +2,13 @@ defmodule CreepyPay.Merchants do
   use Ecto.Schema
   import Ecto.{Changeset, Query}
   alias CreepyPay.Repo
-  alias Faker, as: GemChunk
   require Logger
 
   @gem_len 32
   @aes_vector <<2::128>>
 
   @primary_key {:id, :id, autogenerate: true}
-  @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at, :merchant_gem_crypton]}
+  @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at]}
   schema "merchants" do
     field(:merchant_gem_crypton, :binary)
     field(:shitty_name, :string)
@@ -96,19 +95,13 @@ defmodule CreepyPay.Merchants do
     end
   end
 
-  @doc "Generates a random merchant_gem_crypton string"
+  @doc """
+  Generates a random 32-byte merchant_gem_crypton string.
+  """
   def resolve_gem_crypton do
-    [
-      GemChunk.Cat.name(),
-      GemChunk.Food.dish(),
-      GemChunk.Pizza.style(),
-      GemChunk.Pokemon.name(),
-      GemChunk.Superhero.name(),
-      GemChunk.StarWars.character()
-    ]
-    |> Enum.shuffle()
-    |> Enum.map(&String.replace(&1, ~r/[^a-zA-Z0-9]/, ""))
-    |> Enum.map_join(&String.slice(&1, 0..@gem_len))
+    :crypto.strong_rand_bytes(@gem_len)
+    |> Base.encode32(case: :lower, padding: false)
+    |> String.slice(0, @gem_len)
   end
 
   @doc """
@@ -123,5 +116,9 @@ defmodule CreepyPay.Merchants do
       decrypted = :crypto.crypto_update(cipher, crypton)
       {:ok, decrypted}
     end
+  end
+
+  def get_merchant(merchant_gem_crypton) do
+    Repo.get_by(__MODULE__, merchant_gem_crypton: merchant_gem_crypton)
   end
 end

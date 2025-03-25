@@ -46,3 +46,27 @@ if (command === 'invokeDrop') {
         process.exit(1);
     }
 }
+
+if (command === 'traceSpecter') {
+    const iface = new ethers.Interface([
+        "function traceSpecter(bytes32)"
+    ]);
+
+    const encoded = iface.encodeFunctionData("traceSpecter", [
+        paymentId
+    ]);
+
+    console.log(encoded);
+    try {
+        const tx = await contract.traceSpecter(paymentId);
+
+        console.log("Tx sent:", tx.hash);
+
+        const receipt = await tx.wait();
+        console.log("Tx mined:", receipt.transactionHash);
+        process.exit(0);
+    } catch (err) {
+        console.error("Tx failed:", err.message);
+        process.exit(1);
+    }
+}

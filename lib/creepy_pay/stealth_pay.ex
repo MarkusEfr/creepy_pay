@@ -1,5 +1,9 @@
 defmodule CreepyPay.StealthPay do
   require Logger
+
+  import CreepyPay.Validates.PaymentFlow
+
+  alias CreepyPay.Merchants
   alias QRCode
 
   @chain_id "11155111"
@@ -18,17 +22,57 @@ defmodule CreepyPay.StealthPay do
       })
   end
 
-  def process_payment(payment_metacore) do
-    with {:ok, payment} <- CreepyPay.Payments.get_payment(payment_metacore),
+  def verify_specter_shadow(%{
+        payment_metacore: payment_metacore,
+        merchant_gem_crypton: _merchant_gem_crypton
+      }) do
+    with {:ok, payment} <-
+           CreepyPay.Payments.get_payment(payment_metacore) |> IO.inspect(label: "[INFO] Payment"),
          %{
            amount: amount_wei,
-           stealth_address: address,
+           stealth_address: _address,
            status: "pending"
-         } <- payment,
+         } <- payment |> IO.inspect(label: "[INFO] Payment Details"),
          true <- amount_wei != "0" do
       hashed_payment_id = hash_metacore(payment_metacore)
 
-      Logger.info("Processing payment: #{hashed_payment_id} related to stealth wallet: #{address}")
+      case System.cmd(
+             "node",
+             [
+               "assets/js/payment_contractor.mjs",
+               "traceSpecter",
+               hashed_payment_id
+             ],
+             env: [
+               {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
+               {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
+               {"PAYMENT_PROCESSOR", get_payment_processor()}
+             ]
+           ) do
+        {_, 0} -> :ok
+        _ -> :error
+      end
+    else
+      _ -> :error
+    end
+  end
+
+  def process_payment(payment_metacore) do
+    with {:ok,
+          %{
+            merchant_gem_crypton: merchant_gem_crypton,
+            amount: amount_wei,
+            stealth_address: address
+          }} <-
+           validate_payment_waiting_invoke(%{
+             "payment_metacore" => payment_metacore
+           }) do
+      payment_id = hash_metacore(payment_metacore)
+      hashed_payment_id = hash_metacore(payment_id)
+
+      Logger.info(
+        "Processing payment: #{hashed_payment_id} related to stealth wallet: #{address}"
+      )
 
       {call_data, 0} =
         System.cmd(
@@ -62,9 +106,8 @@ defmodule CreepyPay.StealthPay do
          data: call_data
        }}
     else
-      {:error, _} -> {:error, "Payment not found"}
-      %{} -> {:error, "Payment already processed"}
-      _ -> {:error, "Invalid payment or zero amount"}
+      {:error, reason} -> {:error, reason}
+      _ -> {:error, "Unexpected error"}
     end
   end
 

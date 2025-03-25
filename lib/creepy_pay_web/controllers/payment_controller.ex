@@ -6,6 +6,9 @@ defmodule CreepyPayWeb.PaymentController do
         "merchant_gem_crypton" => merchant_gem_crypton,
         "amount_wei" => amount
       }) do
+    Guardian.Plug.current_resource(conn)
+    |> IO.inspect(label: "[DEBUG] Merchant")
+
     with {:ok, %{payment_metacore: payment_metacore}} <-
            StealthPay.generate_payment_request(%{
              merchant_gem_crypton: merchant_gem_crypton,
@@ -27,8 +30,26 @@ defmodule CreepyPayWeb.PaymentController do
     end
   end
 
-  def get_payment_details(conn, %{"payment_metacore" => payment_metacore}) do
-    {:ok, payment} = Payments.get_payment(payment_metacore)
-    json(conn, %{status: "success", payment: payment})
+  def trace_specter(conn, %{
+        "payment_metacore" => payment_metacore,
+        "merchant_gem_crypton" => merchant_gem_crypton
+      }) do
+    case StealthPay.verify_specter_shadow(%{
+           payment_metacore: payment_metacore,
+           merchant_gem_crypton: merchant_gem_crypton
+         }) do
+      :ok ->
+        Payments.update_payment_status(payment_metacore, "confirmed")
+        json(conn, %{status: "confirmed"})
+
+      :error ->
+        Payments.update_payment_status(payment_metacore, "failed")
+        json(conn, %{status: "failed"})
+
+      _ ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{status: "failed", reason: "Invalid attempt"})
+    end
   end
 end
