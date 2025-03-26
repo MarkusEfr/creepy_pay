@@ -37,33 +37,38 @@ defmodule CreepyPay.StealthPay do
     with {:ok, %{amount: amount_wei, madness_key_hash: key_hash} = payment} <-
            validate_payment_waiting_invoke(%{"payment_metacore" => metacore}),
          trace_id <- payment_metacore_to_integer(metacore),
-         contract <- get_payment_processor() do
-      {result, status} =
-        call_node("unleashDamnation", [
-          hash_hex(key_hash),
-          contract,
-          inspect(trace_id),
-          amount_wei
-        ])
+         contract <- get_payment_processor(),
+         {result, 0} <-
+           call_node("offerBloodOath", [
+             hash_hex(key_hash),
+             contract,
+             inspect(trace_id),
+             amount_wei
+           ]),
+         {:ok, %{"data" => data, "link" => eth_link, "value" => value}} <- Jason.decode(result),
+         {:ok, qr_code} <- generate_qr_code(eth_link) do
+      deeplinks = build_deeplinks(to: contract, value: value, data: data)
 
-      case status do
-        0 ->
-          %{"data" => data, "eth_link" => eth_link, "value" => value} = Jason.decode!(result)
-          {:ok, qr_code} = generate_qr_code(eth_link)
+      {:ok,
+       %{
+         link: eth_link,
+         qr_code: qr_code,
+         data: data,
+         deeplinks: deeplinks,
+         entity: payment
+       }}
+    else
+      {reason, 1} ->
+        %{"reason" => reason} =
+          Jason.decode!(reason) |> IO.inspect(label: "process_payment error")
 
-          {:ok,
-           %{
-             link: eth_link,
-             qr_code: qr_code,
-             data: data,
-             deeplinks: build_deeplinks(to: contract, value: value, data: data),
-             entity: payment
-           }}
+        {:error, reason}
 
-        1 ->
-          %{"reason" => reason} = Jason.decode!(result)
-          {:error, reason}
-      end
+      {:error, decode_err} ->
+        {:error, "JSON decode failed: #{inspect(decode_err)}"}
+
+      result ->
+        {:error, "Unexpected return: #{inspect(result)}"}
     end
   end
 

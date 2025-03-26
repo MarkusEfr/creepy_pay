@@ -29,12 +29,12 @@ if (command === 'offerBloodOath') {
 
         const ethLink = `ethereum:${to}@11155111?value=${value}&data=${data}`;
 
-        console.log({
+        console.log(JSON.stringify({
             to: to,
             value: valueHex,
             data: data,
-            eth_link: ethLink
-        });
+            link: ethLink
+        }));
         process.exit(0);
 
     } catch (err) {
