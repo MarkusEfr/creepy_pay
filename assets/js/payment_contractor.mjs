@@ -51,9 +51,17 @@ if (command === 'unleashDamnation') {
         const receipt = await tx.wait();
         console.log("Tx mined:", receipt.transactionHash);
         process.exit(0);
-    }
-    catch (err) {
-        console.error("Tx failed:", err.message);
+    } catch (err) {
+        const reason =
+            err.reason ||
+            (err.error && err.error.reason) ||
+            (err.revert && err.revert.args && err.revert.args[0]) ||
+            err.message;
+
+        console.error("Tx failed:", reason);
+
+        // Return JSON to Elixir side
+        console.log(JSON.stringify({ status: "error", reason }));
         process.exit(1);
     }
 }

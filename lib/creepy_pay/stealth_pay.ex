@@ -31,28 +31,32 @@ defmodule CreepyPay.StealthPay do
            validate_payment_waiting_invoke(%{"payment_metacore" => metacore}),
          trace_id <- payment_metacore_to_integer(metacore),
          contract <- get_payment_processor() do
-      {result_json, 0} =
-        call_node("offerBloodOath", [
+      {result, status} =
+        call_node("unleashDamnation", [
           hash_hex(key_hash),
           contract,
           inspect(trace_id),
           amount_wei
         ])
 
-      %{"data" => data, "eth_link" => eth_link, "value" => value} = Jason.decode!(result_json)
-      {:ok, qr_code} = generate_qr_code(eth_link)
+      case status do
+        0 ->
+          %{"data" => data, "eth_link" => eth_link, "value" => value} = Jason.decode!(result)
+          {:ok, qr_code} = generate_qr_code(eth_link)
 
-      {:ok,
-       %{
-         link: eth_link,
-         qr_code: qr_code,
-         data: data,
-         deeplinks: build_deeplinks(to: contract, value: value, data: data),
-         entity: payment
-       }}
-    else
-      {:error, reason} -> {:error, reason}
-      _ -> {:error, "Unexpected error"}
+          {:ok,
+           %{
+             link: eth_link,
+             qr_code: qr_code,
+             data: data,
+             deeplinks: build_deeplinks(to: contract, value: value, data: data),
+             entity: payment
+           }}
+
+        1 ->
+          %{"reason" => reason} = Jason.decode!(result)
+          {:error, reason}
+      end
     end
   end
 
@@ -102,17 +106,18 @@ defmodule CreepyPay.StealthPay do
 
   defp generate_qr_code(link) do
     with {:ok, %QRCode.QR{}} = qr <-
-           QRCode.create(link) |> IO.inspect(label: "[DEBUG] create qr"),
-         {:ok, image} = bin_qr <-
+           QRCode.create(link),
+         {:ok, _image} = bin_qr <-
            QRCode.render(qr, :png, %QRCode.Render.PngSettings{
              scale: 4,
              qrcode_color: {0, 128, 0},
              background_color: {255, 255, 255}
            })
-           |> IO.inspect(label: "[DEBUG] render qr"),
-         {:ok, base64} = base_qr <- QRCode.Render.to_base64(bin_qr) do
-      {:ok, "data:image/png;base64," <> base64}
-    end
+
+    {:ok, base64} <-
+      QRCode.Render.to_base64 bin_qr do
+        {:ok, "data:image/png;base64," <> base64}
+      end
   end
 
   defp get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor)

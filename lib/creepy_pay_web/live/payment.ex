@@ -8,7 +8,6 @@ defmodule CreepyPayWeb.Live.Payment do
 
   def mount(%{"payment_metacore" => payment_metacore} = _params, _session, socket) do
     {:ok, payment} = Payments.get_payment(payment_metacore)
-    IO.inspect(payment, label: "[DEBUG] mount payment")
 
     socket =
       socket
@@ -22,8 +21,7 @@ defmodule CreepyPayWeb.Live.Payment do
   def render(assigns) do
     ~H"""
     <div
-      id="send-tx"
-      phx-hook={"SendTx"}
+
       class="cp-mobile-wrapper" >
       <div class="cp-invoice-card">
         <div class="cp-header">
@@ -44,11 +42,13 @@ defmodule CreepyPayWeb.Live.Payment do
           <p class={"cp-status cp-status-#{@payment.status}"}><%= @payment.status %></p>
         </div>
         <div
-      data-to={@payment_contract}
-      data-value={@payment.amount}
-      data-data="0x"
-      class="cp-actions">
-      <button class="cp-btn">🧾 Confirm Payment</button>
+        id="send-tx"
+        phx-hook={"SendTx"}
+        data-to={@payment_contract}
+        data-value={@payment.amount}
+        data-data="0x"
+        class="cp-actions">
+        <button class="cp-btn">🧾 Confirm Payment</button>
       </div>
       </div>
     </div>
