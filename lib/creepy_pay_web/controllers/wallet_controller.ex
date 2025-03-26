@@ -5,8 +5,8 @@ defmodule CreepyPayWeb.WalletController do
   @doc """
   Creates a new stealth wallet for a merchant.
   """
-  def create_wallet(conn, %{"merchant_gem_crypton" => gem}) do
-    {:ok, %CreepyPay.Wallets.Wallet{} = wallet} = Wallets.create_wallet(gem)
+  def create_wallet(conn, _) do
+    {:ok, %CreepyPay.Wallets.Wallet{} = wallet} = Wallets.create_wallet()
 
     json(conn, %{wallet: wallet})
   end
@@ -22,14 +22,6 @@ defmodule CreepyPayWeb.WalletController do
       {:error, _reason} ->
         json(conn, %{error: "Wallet not found"})
     end
-  end
-
-  @doc """
-  Lists all wallets associated with a merchant.
-  """
-  def list_wallets(conn, %{"merchant_gem_crypton" => merchant_gem_crypton}) do
-    wallets = Wallets.get_wallet_by_merchant(merchant_gem_crypton)
-    json(conn, %{wallets: wallets})
   end
 
   @doc """

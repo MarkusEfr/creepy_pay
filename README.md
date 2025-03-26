@@ -61,7 +61,6 @@
 | `POST`     | `/api/payment/claim`     | Claim payment securely using a signature |
 | `POST`     | `/api/wallet/create`     | Create new stealth wallet for merchant |
 | `GET`      | `/api/wallet/:wallet_id` | Get stealth wallet info |
-| `GET`      | `/api/wallets/:merchant_gem_crypton` | List all merchant wallets |
 
 > 🛠 **Custom integrations available** – tailor CreepyPay to your business needs.  
 

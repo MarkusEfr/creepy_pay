@@ -42,27 +42,14 @@ defmodule CreepyPayWeb.Router do
     pipe_through(:api)
     pipe_through(:auth)
 
-    # Shadow Payment API
-    # create payment
-    post("/invoke-drop", PaymentController, :invoke_drop)
-    # confirm by backend
-    post("/trace-specter", PaymentController, :trace_specter)
-    # freeze
-    post("/curse-status/:payment_metacore", PaymentController, :curse_status)
-    # unlock cursed
-    post("/lift-hex/:payment_metacore", PaymentController, :lift_hex)
-    # send funds
-    post("/release-shadow/:payment_metacore", PaymentController, :release_from_shadow)
-
-    # Read-Only API (Helpers)
-    get("/trace-balance/:payment_metacore", PaymentController, :trace_balance)
-    get("/shadow/:payment_metacore", PaymentController, :get_shadow_wallet)
-    get("/curse/:payment_metacore", PaymentController, :get_curse_status)
+    # Payment API
+    post("/offer-blood-oath", PaymentController, :offer_blood_oath)
+    post("/release-damnation", PaymentController, :unleash_damnation)
+    get("/vault-balance", PaymentController, :vault_balance)
 
     # Wallets
     post("/wallet/create", WalletController, :create_wallet)
     get("/wallet/:wallet_id", WalletController, :get_wallet)
-    get("/wallets/:merchant_gem_crypton", WalletController, :list_wallets)
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

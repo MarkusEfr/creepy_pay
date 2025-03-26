@@ -2,20 +2,21 @@ defmodule CreepyPayWeb.PaymentController do
   use CreepyPayWeb, :controller
   alias CreepyPay.{Payments, StealthPay}
 
-  def invoke_drop(conn, %{
-        "merchant_gem_crypton" => merchant_gem_crypton,
-        "amount_wei" => amount
-      }) do
-    Guardian.Plug.current_resource(conn)
-    |> IO.inspect(label: "[DEBUG] Merchant")
+  def offer_blood_oath(conn, %{"amount_wei" => amount}) do
+    %CreepyPay.Merchants{madness_key_hash: madness_key_hash} =
+      Guardian.Plug.current_resource(conn)
+      |> IO.inspect(label: "[DEBUG] Merchant")
 
     with {:ok, %{payment_metacore: payment_metacore}} <-
            StealthPay.generate_payment_request(%{
-             merchant_gem_crypton: merchant_gem_crypton,
              amount: amount
            }),
          {:ok, payment_data} <-
-           StealthPay.process_payment(payment_metacore) do
+           StealthPay.process_payment(%{
+             madness_key_hash: madness_key_hash,
+             payment_metacore: payment_metacore
+           }) do
+      Payments.update_payment_status(payment_metacore, "")
       json(conn, %{status: "success", payment: payment_data})
     else
       {:error, reason} ->
@@ -30,26 +31,31 @@ defmodule CreepyPayWeb.PaymentController do
     end
   end
 
-  def trace_specter(conn, %{
+  def unleash_damnation(conn, %{
         "payment_metacore" => payment_metacore,
-        "merchant_gem_crypton" => merchant_gem_crypton
+        "recipient" => recipient
       }) do
-    case StealthPay.verify_specter_shadow(%{
-           payment_metacore: payment_metacore,
-           merchant_gem_crypton: merchant_gem_crypton
-         }) do
-      :ok ->
-        Payments.update_payment_status(payment_metacore, "confirmed")
-        json(conn, %{status: "confirmed"})
+    with {:ok, _payment} <- Payments.get_payment(payment_metacore),
+         :ok <- StealthPay.release_payment(payment_metacore, recipient) do
+      Payments.update_payment_status(payment_metacore, "claimed")
+      json(conn, %{status: "released"})
+    else
+      {:error, reason} ->
+        json(conn, %{status: "failed", reason: reason})
+    end
+  end
 
-      :error ->
-        Payments.update_payment_status(payment_metacore, "failed")
-        json(conn, %{status: "failed"})
+  def vault_balance(conn, _) do
+    %{madness_key_hash: madness_key_hash} = Guardian.Plug.current_resource(conn)
 
-      _ ->
+    case StealthPay.vault_balance(%{madness_key_hash: madness_key_hash}) do
+      {amount, 0} ->
+        json(conn, %{status: "ok", balance_wei: String.trim(amount)})
+
+      {error_msg, _} ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{status: "failed", reason: "Invalid attempt"})
+        |> put_status(:internal_server_error)
+        |> json(%{status: "failed", reason: String.trim(error_msg)})
     end
   end
 end

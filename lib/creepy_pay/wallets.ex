@@ -1,17 +1,15 @@
 defmodule CreepyPay.Wallets do
-  import Ecto.Query
   alias CreepyPay.Repo
   alias CreepyPay.Wallets.Wallet
 
   require Logger
 
-  def create_wallet(%{merchant_gem_crypton: merchant_gem_crypton}) do
-    case generate_wallet_from_node() do
+  def create_wallet do
+    case(generate_wallet_from_node()) do
       %{"address" => address, "privateKey" => private_key} ->
-        index = get_next_wallet_index(merchant_gem_crypton)
+        index = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
         wallet_attrs = %{
-          merchant_gem_crypton: merchant_gem_crypton,
           wallet_index: index,
           private_key_shadow: private_key,
           address: address
@@ -49,36 +47,7 @@ defmodule CreepyPay.Wallets do
   def delete_wallet(wallet_id), do: Repo.delete(Repo.get(Wallet, wallet_id))
 
   @doc """
-  Retrieves the next available wallet index for a merchant.
-  """
-  def get_next_wallet_index(merchant_gem_crypton) do
-    case Repo.one(
-           from(w in Wallet,
-             where: w.merchant_gem_crypton == ^merchant_gem_crypton,
-             select: max(w.wallet_index)
-           )
-         ) do
-      nil -> 0
-      index -> index + 1
-    end
-  end
-
-  @doc """
   Retrieves a wallet by ID.
   """
   def get_wallet(wallet_id), do: Repo.get(Wallet, wallet_id)
-
-  @doc """
-  Retrieves a wallet by merchant_gem_crypton.
-  """
-  def get_wallet_by_merchant(merchant_gem_crypton) do
-    from(w in Wallet,
-      where: w.merchant_gem_crypton == ^merchant_gem_crypton,
-      left_join: p in CreepyPay.Payments,
-      on: p.stealth_address == w.address,
-      where: is_nil(p.id),
-      select: w
-    )
-    |> Repo.all()
-  end
 end

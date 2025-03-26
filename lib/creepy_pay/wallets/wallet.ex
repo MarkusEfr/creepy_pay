@@ -4,7 +4,6 @@ defmodule CreepyPay.Wallets.Wallet do
 
   @derive {Jason.Encoder, only: [:wallet_index, :address, :inserted_at]}
   schema "wallets" do
-    field(:merchant_gem_crypton, :binary)
     field(:wallet_index, :integer, default: 0)
     field(:address, :string)
     field(:private_key_shadow, :binary)
@@ -20,13 +19,11 @@ defmodule CreepyPay.Wallets.Wallet do
   def changeset(wallet, attrs \\ %{}) do
     wallet
     |> cast(attrs, [
-      :merchant_gem_crypton,
       :wallet_index,
       :address,
       :private_key_shadow
     ])
     |> validate_required([
-      :merchant_gem_crypton,
       :wallet_index,
       :address,
       :private_key_shadow

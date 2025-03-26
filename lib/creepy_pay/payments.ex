@@ -3,19 +3,15 @@ defmodule CreepyPay.Payments do
   import Ecto.Changeset
   alias CreepyPay.Repo
 
-  @primary_key {:payment_metacore, :binary, autogenerate: false}
+  @primary_key {:payment_metacore, :string, autogenerate: false}
   @derive {Jason.Encoder,
            only: [
              :payment_metacore,
-             :merchant_gem_crypton,
-             :stealth_address,
              :amount,
              :status,
              :inserted_at
            ]}
   schema "payments" do
-    field(:merchant_gem_crypton, :binary)
-    field(:stealth_address, :string)
     field(:amount, :string)
     field(:status, :string, default: "pending")
 
@@ -27,21 +23,17 @@ defmodule CreepyPay.Payments do
   """
   def changeset(payment, attrs) do
     payment
-    |> cast(attrs, [:payment_metacore, :merchant_gem_crypton, :stealth_address, :amount, :status])
-    |> validate_required([:payment_metacore, :merchant_gem_crypton, :amount, :status])
+    |> cast(attrs, [:payment_metacore, :amount, :status])
+    |> validate_required([:payment_metacore, :amount, :status])
   end
 
   @doc """
   Creates a new payment and assigns a stealth address dynamically.
   """
-  def store_payment(
-        %{merchant_gem_crypton: merchant_gem_crypton, amount: amount, wallet: wallet} = _payment
-      ) do
+  def store_payment(%{amount: amount} = _payment) do
     %__MODULE__{
       payment_metacore: Ecto.UUID.generate(),
-      merchant_gem_crypton: merchant_gem_crypton,
-      amount: amount,
-      stealth_address: wallet.address
+      amount: amount
     }
     |> Repo.insert()
   end

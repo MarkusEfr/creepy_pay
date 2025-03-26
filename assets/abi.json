@@ -1,18 +1,5 @@
 [
     {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "curseStatus",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
@@ -66,13 +53,13 @@
             {
                 "indexed": true,
                 "internalType": "bytes32",
-                "name": "paymentId",
+                "name": "infernalMark",
                 "type": "bytes32"
             },
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "shadowWallet",
+                "name": "to",
                 "type": "address"
             },
             {
@@ -82,7 +69,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "DropInvoked",
+        "name": "DamnationUnleashed",
         "type": "event"
     },
     {
@@ -91,56 +78,18 @@
             {
                 "indexed": true,
                 "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "HexLifted",
-        "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
+                "name": "infernalMark",
                 "type": "bytes32"
             },
             {
-                "internalType": "address",
-                "name": "shadowWallet",
-                "type": "address"
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
             }
         ],
-        "name": "invokeDrop",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "LockCursed",
+        "name": "OathBound",
         "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "lockInDarkness",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
     },
     {
         "anonymous": false,
@@ -162,41 +111,36 @@
         "type": "event"
     },
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "to",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "ReleasedFromDarkness",
-        "type": "event"
+        "inputs": [],
+        "name": "obliterateVault",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "paymentId",
+                "name": "infernalMark",
                 "type": "bytes32"
             }
         ],
-        "name": "releaseFromShadow",
+        "name": "offerBloodOath",
         "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -207,29 +151,22 @@
         "type": "function"
     },
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "SpecterMarked",
-        "type": "event"
-    },
-    {
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "paymentId",
+                "name": "infernalMark",
                 "type": "bytes32"
             }
         ],
-        "name": "traceSpecter",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "name": "scryInfernalBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -249,137 +186,22 @@
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "paymentId",
+                "name": "infernalMark",
                 "type": "bytes32"
-            }
-        ],
-        "name": "getCurse",
-        "outputs": [
-            {
-                "internalType": "enum CreepyPay.Curse",
-                "name": "",
-                "type": "uint8"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "getShadow",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "name": "hexUnlocked",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "name": "ledger",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "shadowWallet",
-                "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            },
-            {
-                "internalType": "enum CreepyPay.Curse",
-                "name": "status",
-                "type": "uint8"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "owner",
-        "outputs": [
-            {
                 "internalType": "address",
-                "name": "",
+                "name": "recipient",
                 "type": "address"
             }
         ],
-        "stateMutability": "view",
+        "name": "unleashDamnation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "name": "specterConfirmed",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "paymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "traceBalance",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ]

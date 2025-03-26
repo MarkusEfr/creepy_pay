@@ -3,116 +3,105 @@ defmodule CreepyPay.StealthPay do
 
   import CreepyPay.Validates.PaymentFlow
 
-  alias CreepyPay.Merchants
   alias QRCode
 
   @chain_id "11155111"
 
-  def generate_payment_request(
-        %{merchant_gem_crypton: merchant_gem_crypton, amount: amount_wei} = _params
-      ) do
-    %CreepyPay.Wallets.Wallet{address: _address} =
-      wallet = CreepyPay.Wallets.create_wallet(%{merchant_gem_crypton: merchant_gem_crypton})
-
+  def generate_payment_request(%{amount: amount_wei} = _params) do
     {:ok, _payment} =
       CreepyPay.Payments.store_payment(%{
-        merchant_gem_crypton: merchant_gem_crypton,
-        amount: amount_wei,
-        wallet: wallet
+        amount: amount_wei
       })
   end
 
-  def verify_specter_shadow(%{
-        payment_metacore: payment_metacore,
-        merchant_gem_crypton: _merchant_gem_crypton
-      }) do
-    with {:ok, payment} <-
-           CreepyPay.Payments.get_payment(payment_metacore) |> IO.inspect(label: "[INFO] Payment"),
-         %{
-           amount: amount_wei,
-           stealth_address: _address,
-           status: "pending"
-         } <- payment |> IO.inspect(label: "[INFO] Payment Details"),
-         true <- amount_wei != "0" do
-      hashed_payment_id = hash_metacore(payment_metacore)
+  def release_payment(payment_metacore, recipient) do
+    hashed_madness_key = hash_madness_key(payment_metacore)
 
-      case System.cmd(
-             "node",
-             [
-               "assets/js/payment_contractor.mjs",
-               "traceSpecter",
-               hashed_payment_id
-             ],
-             env: [
-               {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
-               {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
-               {"PAYMENT_PROCESSOR", get_payment_processor()}
-             ]
-           ) do
-        {_, 0} -> :ok
-        _ -> :error
-      end
-    else
-      _ -> :error
-    end
-  end
-
-  def process_payment(payment_metacore) do
-    with {:ok,
-          %{
-            merchant_gem_crypton: merchant_gem_crypton,
-            amount: amount_wei,
-            stealth_address: address
-          }} <-
-           validate_payment_waiting_invoke(%{
-             "payment_metacore" => payment_metacore
-           }) do
-      payment_id = hash_metacore(payment_metacore)
-      hashed_payment_id = hash_metacore(payment_id)
-
-      Logger.info(
-        "Processing payment: #{hashed_payment_id} related to stealth wallet: #{address}"
+    {_, 0} =
+      System.cmd(
+        "node",
+        [
+          "assets/js/payment_contractor.mjs",
+          "unleashDamnation",
+          hashed_madness_key,
+          recipient
+        ],
+        env: [
+          {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
+          {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
+          {"PAYMENT_PROCESSOR", get_payment_processor()}
+        ]
       )
 
-      {call_data, 0} =
-        System.cmd(
-          "node",
-          [
-            "assets/js/payment_contractor.mjs",
-            "invokeDrop",
-            hashed_payment_id,
-            address,
-            amount_wei
-          ],
-          env: [
-            {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
-            {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
-            {"PAYMENT_PROCESSOR", get_payment_processor()}
-          ]
-        )
+    :ok
+  end
 
-      call_data = String.trim(call_data)
+  def process_payment(%{
+        madness_key_hash: madness_key_hash,
+        payment_metacore: payment_metacore
+      }) do
+    case validate_payment_waiting_invoke(%{
+           "payment_metacore" => payment_metacore
+         }) do
+      {:ok, %{amount: amount_wei} = _payment} ->
+        {call_data, 0} =
+          System.cmd(
+            "node",
+            [
+              "assets/js/payment_contractor.mjs",
+              "offerBloodOath",
+              hash_madness_key(madness_key_hash),
+              amount_wei
+            ],
+            env: [
+              {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
+              {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
+              {"PAYMENT_PROCESSOR", get_payment_processor()}
+            ]
+          )
 
-      eth_link =
-        "ethereum:#{get_payment_processor()}@#{@chain_id}?" <>
-          "value=#{amount_wei}&data=#{call_data}"
+        call_data = String.trim(call_data)
 
-      {:ok, qr_code} = generate_qr_code(eth_link)
+        eth_link =
+          "ethereum:#{get_payment_processor()}@#{@chain_id}?" <>
+            "value=#{amount_wei}&data=#{call_data}"
 
-      {:ok,
-       %{
-         eth_payment_link: eth_link,
-         qr_code: qr_code,
-         data: call_data
-       }}
-    else
-      {:error, reason} -> {:error, reason}
-      _ -> {:error, "Unexpected error"}
+        {:ok, qr_code} = generate_qr_code(eth_link)
+
+        {:ok,
+         %{
+           eth_payment_link: eth_link,
+           qr_code: qr_code,
+           data: call_data
+         }}
+
+      {:error, reason} ->
+        {:error, reason}
+
+      _ ->
+        {:error, "Unexpected error"}
     end
   end
 
-  defp hash_metacore(payment_metacore) do
-    payment_metacore
+  def vault_balance(%{madness_key_hash: madness_key_hash}) do
+    {_, 0} =
+      System.cmd(
+        "node",
+        [
+          "assets/js/payment_contractor.mjs",
+          "scryInfernalBalance",
+          madness_key_hash |> hash_madness_key()
+        ],
+        env: [
+          {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
+          {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
+          {"PAYMENT_PROCESSOR", Application.get_env(:creepy_pay, :payment_processor)}
+        ]
+      )
+  end
+
+  defp hash_madness_key(madness_key_hash) do
+    madness_key_hash
     |> String.replace("-", "")
     |> String.downcase()
     |> then(&:crypto.hash(:sha3_256, &1))

@@ -18,55 +18,49 @@ const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 // CLI args
-const [, , command, paymentId, stealthWallet, value] = process.argv;
+const [, , command, paymentId, value] = process.argv;
 
-if (command === 'invokeDrop') {
-    const iface = new ethers.Interface([
-        "function invokeDrop(bytes32,address)"
-    ]);
-
-    const encoded = iface.encodeFunctionData("invokeDrop", [
-        paymentId,
-        stealthWallet
-    ]);
-
-    console.log(encoded);
+if (command === 'offerBloodOath') {
     try {
-        const tx = await contract.invokeDrop(paymentId, stealthWallet, {
-            value: ethers.toBigInt(value),
+        const tx = await contract.offerBloodOath(paymentId, {
+            value: ethers.toBigInt(value)
         });
-
         console.log("Tx sent:", tx.hash);
 
         const receipt = await tx.wait();
         console.log("Tx mined:", receipt.transactionHash);
         process.exit(0);
-    } catch (err) {
+    }
+    catch (err) {
         console.error("Tx failed:", err.message);
         process.exit(1);
     }
 }
 
-if (command === 'traceSpecter') {
-    const iface = new ethers.Interface([
-        "function traceSpecter(bytes32)"
-    ]);
-
-    const encoded = iface.encodeFunctionData("traceSpecter", [
-        paymentId
-    ]);
-
-    console.log(encoded);
+if (command === 'unleashDamnation') {
     try {
-        const tx = await contract.traceSpecter(paymentId);
-
-        console.log("Tx sent:", tx.hash);
-
+        const tx = await contract.unleashDamnation(paymentId, recipient);
+        console.log(tx);
         const receipt = await tx.wait();
         console.log("Tx mined:", receipt.transactionHash);
         process.exit(0);
-    } catch (err) {
+    }
+    catch (err) {
         console.error("Tx failed:", err.message);
         process.exit(1);
     }
 }
+
+if (command === 'scryInfernalBalance') {
+    try {
+        const balance = await contract.scryInfernalBalance(paymentId);
+        console.log(balance.toString());
+        process.exit(0);
+    }
+    catch (err) {
+        console.error("Tx failed:", err.message);
+        process.exit(1);
+    }
+}
+
+
