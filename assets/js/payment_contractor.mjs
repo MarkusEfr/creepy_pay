@@ -29,14 +29,14 @@ if (command === 'offerBloodOath') {
 
         const ethLink = `ethereum:${to}@11155111?value=${value}&data=${data}`;
 
-        console.log(JSON.stringify({
+        console.log({
             to: to,
             value: valueHex,
             data: data,
             eth_link: ethLink
-        }, null, 2));
-
+        });
         process.exit(0);
+
     } catch (err) {
         console.error("Failed to prepare tx:", err.message);
         process.exit(1);
@@ -47,9 +47,8 @@ if (command === 'offerBloodOath') {
 if (command === 'unleashDamnation') {
     try {
         const tx = await contract.unleashDamnation(madness_key, recipient);
-        console.log(tx);
         const receipt = await tx.wait();
-        console.log("Tx mined:", receipt.transactionHash);
+        console.log(JSON.stringify({ status: "ok", receipt: receipt }));
         process.exit(0);
     } catch (err) {
         const reason =
@@ -58,10 +57,8 @@ if (command === 'unleashDamnation') {
             (err.revert && err.revert.args && err.revert.args[0]) ||
             err.message;
 
-        console.error("Tx failed:", reason);
-
         // Return JSON to Elixir side
-        console.log(JSON.stringify({ status: "error", reason }));
+        console.log(JSON.stringify({ status: "failed", reason: reason || "Unknown" }));
         process.exit(1);
     }
 }

@@ -9,7 +9,7 @@ const SendTx = {
             const value = this.el.dataset.value
             const data = this.el.dataset.data || "0x"
 
-            if (!window.ethereum) return alert("MetaMask not found!")
+            if (!window.ethereum) return alert("Web3 provider not found at the Browser!")
 
             const provider = new ethers.BrowserProvider(window.ethereum)
             const signer = await provider.getSigner()
@@ -24,9 +24,10 @@ const SendTx = {
                 console.log("TX sent:", tx.hash)
                 this.pushEvent("tx_sent", { tx_hash: tx.hash })
             } catch (err) {
-                console.error("Transaction failed", err)
-                alert("Transaction failed: " + err.message)
+                console.error("Transaction failed:", err);
+                alert(`Transaction failed!\n\nReason: ${err.reason || 'Unknown'}\n\nDetails:\n` + JSON.stringify(err, null, 2));
             }
+
         })
     }
 }

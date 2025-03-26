@@ -15,15 +15,22 @@ defmodule CreepyPay.StealthPay do
   end
 
   def release_payment(%{madness_key: madness_key, recipient: recipient}) do
-    call_node("unleashDamnation", [
-      hash_hex(madness_key),
-      recipient,
-      @default_data,
-      @default_trace,
-      "0x"
-    ])
+    case call_node(
+           "unleashDamnation",
+           [
+             hash_hex(madness_key),
+             recipient,
+             @default_data,
+             @default_trace,
+             "0x"
+           ]
+         ) do
+      {result, 0} ->
+        {:ok, Jason.decode!(result)}
 
-    :ok
+      {result, 1} ->
+        {:error, Jason.decode!(result)}
+    end
   end
 
   def process_payment(%{payment_metacore: metacore}) do

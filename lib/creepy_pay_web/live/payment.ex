@@ -21,7 +21,6 @@ defmodule CreepyPayWeb.Live.Payment do
   def render(assigns) do
     ~H"""
     <div
-
       class="cp-mobile-wrapper" >
       <div class="cp-invoice-card">
         <div class="cp-header">

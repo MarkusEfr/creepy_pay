@@ -1,6 +1,6 @@
 defmodule CreepyPayWeb.PaymentController do
   use CreepyPayWeb, :controller
-  alias CreepyPay.{Payments, StealthPay}
+  alias CreepyPay.StealthPay
 
   def offer_blood_oath(conn, %{"amount_wei" => amount}) do
     %CreepyPay.Merchants{madness_key_hash: madness_key_hash} =
@@ -23,11 +23,9 @@ defmodule CreepyPayWeb.PaymentController do
         |> json(%{status: "failed", reason: reason})
 
       result ->
-        IO.inspect(result, label: "[DEBUG] offer_blood_oath")
-
         conn
         |> put_status(:bad_request)
-        |> json(%{status: "failed", reason: "Unexpected error"})
+        |> json(result)
     end
   end
 
@@ -35,13 +33,21 @@ defmodule CreepyPayWeb.PaymentController do
         "madness_key" => madness_key,
         "recipient" => recipient
       }) do
-    with :ok <- StealthPay.release_payment(%{madness_key: madness_key, recipient: recipient}),
-         :ok <-
-           Payments.update_payment_status(madness_key, "released") do
-      json(conn, %{status: "released"})
-    else
+    case StealthPay.release_payment(%{madness_key: madness_key, recipient: recipient}) do
+      {:ok, transaction} ->
+        conn
+        |> put_status(:ok)
+        |> json(transaction)
+
       {:error, reason} ->
-        json(conn, %{status: "failed", reason: reason})
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(reason)
+
+      _ ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{"status" => "failed", "reason" => "Unexpected error"})
     end
   end
 
