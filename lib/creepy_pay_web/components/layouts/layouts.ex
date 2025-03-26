@@ -13,7 +13,7 @@ defmodule CreepyPayWeb.Layouts do
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
     <head>
-    <%= Phoenix.LiveView.Helpers.live_title_tag(assigns[:page_title] || "CreepyPay") %>
+    <%= Phoenix.LiveView.Helpers.live_title(assigns[:page_title] || "CreepyPay") %>
     </head>
     <body>
     <%= @inner_content %>

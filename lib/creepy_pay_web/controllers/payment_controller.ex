@@ -35,7 +35,7 @@ defmodule CreepyPayWeb.PaymentController do
         "madness_key" => madness_key,
         "recipient" => recipient
       }) do
-    with :ok <- StealthPay.release_payment(madness_key, recipient),
+    with :ok <- StealthPay.release_payment(%{madness_key: madness_key, recipient: recipient}),
          :ok <-
            Payments.update_payment_status(madness_key, "released") do
       json(conn, %{status: "released"})

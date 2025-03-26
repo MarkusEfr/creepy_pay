@@ -19,7 +19,7 @@ const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 // CLI args
-const [, , command, madness_key, trace_id, value] = process.argv;
+const [, , command, madness_key, recipient, trace_id, value] = process.argv;
 
 if (command === 'offerBloodOath') {
     try {
