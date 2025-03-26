@@ -112,12 +112,10 @@ defmodule CreepyPay.StealthPay do
              scale: 4,
              qrcode_color: {0, 128, 0},
              background_color: {255, 255, 255}
-           })
-
-    {:ok, base64} <-
-      QRCode.Render.to_base64 bin_qr do
-        {:ok, "data:image/png;base64," <> base64}
-      end
+           }),
+         {:ok, base64} <- QRCode.Render.to_base64(bin_qr) do
+      {:ok, "data:image/png;base64," <> base64}
+    end
   end
 
   defp get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor)
