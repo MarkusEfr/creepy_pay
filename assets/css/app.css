@@ -1,5 +1,96 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+.cp-mobile-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+    background: #0d0d0d;
+    padding: 1rem;
+}
 
-/* This file is for your main application CSS */
+.cp-invoice-card {
+    /* roughly 2/5 of a 1080px screen */
+    background: #1a1a1a;
+    color: #f3f3f3;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    font-family: 'Inter', sans-serif;
+}
+
+.cp-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.cp-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.5rem;
+}
+
+.cp-title {
+    font-size: 1.4rem;
+    color: #00ff99;
+    font-weight: bold;
+    font-family: 'Creepster', cursive;
+}
+
+.cp-info-group {
+    margin-bottom: 1.5rem;
+}
+
+.cp-info-group label {
+    font-size: 0.8rem;
+    color: #cccccc;
+    display: block;
+    margin-top: 1rem;
+}
+
+.cp-value {
+    background: #2e2e2e;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-family: monospace;
+    word-break: break-all;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    color: #e0e0e0;
+}
+
+.cp-status {
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 0.25rem;
+}
+
+.cp-status-pending {
+    background: #ffe58f;
+    color: #665c00;
+}
+
+.cp-status-released {
+    background: #b7eb8f;
+    color: #135200;
+}
+
+.cp-actions {
+    text-align: center;
+}
+
+.cp-btn {
+    background: #00cc88;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.cp-btn:hover {
+    background: #00a36c;
+}

@@ -5,17 +5,18 @@ defmodule CreepyPay.StealthPay do
 
   alias QRCode
 
-  @chain_id "11155111"
-
-  def generate_payment_request(%{amount: amount_wei} = _params) do
+  def generate_payment_request(
+        %{amount: amount_wei, madness_key_hash: madness_key_hash} = _params
+      ) do
     {:ok, _payment} =
       CreepyPay.Payments.store_payment(%{
-        amount: amount_wei
+        amount: amount_wei,
+        madness_key_hash: madness_key_hash
       })
   end
 
-  def release_payment(payment_metacore, recipient) do
-    hashed_madness_key = hash_madness_key(payment_metacore)
+  def release_payment(madness_key_hash, recipient) do
+    hashed_madness_key = hash_madness_key(madness_key_hash)
 
     {_, 0} =
       System.cmd(
@@ -37,13 +38,15 @@ defmodule CreepyPay.StealthPay do
   end
 
   def process_payment(%{
-        madness_key_hash: madness_key_hash,
         payment_metacore: payment_metacore
       }) do
     case validate_payment_waiting_invoke(%{
            "payment_metacore" => payment_metacore
          }) do
-      {:ok, %{amount: amount_wei} = _payment} ->
+      {:ok, %{amount: amount_wei, madness_key_hash: madness_key_hash} = payment} ->
+        integer_payment_metacore = payment_metacore_to_integer(payment_metacore)
+        payment_contract = get_payment_processor()
+
         {call_data, 0} =
           System.cmd(
             "node",
@@ -51,28 +54,30 @@ defmodule CreepyPay.StealthPay do
               "assets/js/payment_contractor.mjs",
               "offerBloodOath",
               hash_madness_key(madness_key_hash),
+              inspect(integer_payment_metacore),
               amount_wei
             ],
             env: [
               {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
               {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
-              {"PAYMENT_PROCESSOR", get_payment_processor()}
+              {"PAYMENT_PROCESSOR", payment_contract}
             ]
           )
 
-        call_data = String.trim(call_data)
-
-        eth_link =
-          "ethereum:#{get_payment_processor()}@#{@chain_id}?" <>
-            "value=#{amount_wei}&data=#{call_data}"
+        %{"data" => call_data, "eth_link" => eth_link, "value" => value} =
+          Jason.decode!(call_data)
 
         {:ok, qr_code} = generate_qr_code(eth_link)
 
+        deeplinks = build_deeplinks(%{to: payment_contract, value: value, data: call_data})
+
         {:ok,
          %{
-           eth_payment_link: eth_link,
+           link: eth_link,
            qr_code: qr_code,
-           data: call_data
+           data: call_data,
+           deeplinks: deeplinks,
+           entity: payment
          }}
 
       {:error, reason} ->
@@ -95,9 +100,28 @@ defmodule CreepyPay.StealthPay do
         env: [
           {"RPC_URL", Application.get_env(:creepy_pay, :rpc_url)},
           {"PRIVATE_KEY", Application.get_env(:creepy_pay, :private_key)},
-          {"PAYMENT_PROCESSOR", Application.get_env(:creepy_pay, :payment_processor)}
+          {"PAYMENT_PROCESSOR", get_payment_processor()}
         ]
       )
+  end
+
+  defp build_deeplinks(%{to: to, value: value, data: data}) do
+    %{
+      metamask: "https://metamask.app.link/send/#{to}?value=#{value}&data=#{data}",
+      trustwallet: "https://link.trustwallet.com/send?to=#{to}&value=#{value}&data=#{data}"
+    }
+  end
+
+  defp payment_metacore_to_integer(payment_metacore) do
+    payment_metacore_number =
+      payment_metacore
+      |> String.replace("0x", "")
+      |> String.replace("-", "")
+      |> String.downcase()
+
+    :sha3_256
+    |> :crypto.hash(payment_metacore_number)
+    |> :binary.decode_unsigned()
   end
 
   defp hash_madness_key(madness_key_hash) do
@@ -110,14 +134,17 @@ defmodule CreepyPay.StealthPay do
   end
 
   defp generate_qr_code(link) do
-    link
-    |> QRCode.create()
-    |> QRCode.render(:png, %QRCode.Render.PngSettings{
-      scale: 4,
-      qrcode_color: {0, 128, 0},
-      background_color: {255, 255, 255}
-    })
-    |> QRCode.to_base64()
+    {:ok, qr_code} =
+      link
+      |> QRCode.create()
+      |> QRCode.render(:png, %QRCode.Render.PngSettings{
+        scale: 4,
+        qrcode_color: {0, 128, 0},
+        background_color: {255, 255, 255}
+      })
+      |> QRCode.to_base64()
+
+    {:ok, "data:image/png;base64," <> qr_code}
   end
 
   defp get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor, nil)

@@ -5,6 +5,7 @@ defmodule CreepyPayWeb.Router do
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
+    plug(Plug.CSRFProtection)
     plug(:put_root_layout, {CreepyPayWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
@@ -12,6 +13,12 @@ defmodule CreepyPayWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+  end
+
+  scope "/pay", CreepyPayWeb do
+    pipe_through(:browser)
+
+    live("/:payment_metacore", Live.Payment, :index)
   end
 
   pipeline :auth do

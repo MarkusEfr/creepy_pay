@@ -58,6 +58,9 @@ defmodule CreepyPayWeb do
         router: CreepyPayWeb.Router,
         statics: CreepyPayWeb.static_paths()
 
+      # Import convenience functions from controllers
+      import Phoenix.Controller, only: [get_csrf_token: 0, view_module: 1]
+
       import Phoenix.LiveView.Helpers
       import Phoenix.Component
 
@@ -71,6 +74,23 @@ defmodule CreepyPayWeb do
         endpoint: CreepyPayWeb.Endpoint,
         router: CreepyPayWeb.Router,
         statics: CreepyPayWeb.static_paths()
+    end
+  end
+
+  def live_view do
+    quote do
+      use Phoenix.LiveView
+
+      unquote(view_helpers())
+    end
+  end
+
+  defp view_helpers do
+    quote do
+      use Phoenix.Component
+      import Phoenix.LiveView.Helpers
+      import Phoenix.HTML
+      alias CreepyPayWeb.Router.Helpers, as: Routes
     end
   end
 

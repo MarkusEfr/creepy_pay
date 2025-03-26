@@ -7,11 +7,13 @@ defmodule CreepyPay.Payments do
   @derive {Jason.Encoder,
            only: [
              :payment_metacore,
+             :madness_key_hash,
              :amount,
              :status,
              :inserted_at
            ]}
   schema "payments" do
+    field(:madness_key_hash, :string)
     field(:amount, :string)
     field(:status, :string, default: "pending")
 
@@ -23,16 +25,17 @@ defmodule CreepyPay.Payments do
   """
   def changeset(payment, attrs) do
     payment
-    |> cast(attrs, [:payment_metacore, :amount, :status])
-    |> validate_required([:payment_metacore, :amount, :status])
+    |> cast(attrs, [:payment_metacore, :madness_key_hash, :amount, :status])
+    |> validate_required([:payment_metacore, :madness_key_hash, :amount, :status])
   end
 
   @doc """
   Creates a new payment and assigns a stealth address dynamically.
   """
-  def store_payment(%{amount: amount} = _payment) do
+  def store_payment(%{amount: amount, madness_key_hash: madness_key_hash} = _payment) do
     %__MODULE__{
       payment_metacore: Ecto.UUID.generate(),
+      madness_key_hash: madness_key_hash,
       amount: amount
     }
     |> Repo.insert()

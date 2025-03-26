@@ -21,7 +21,7 @@ defmodule CreepyPay.Merchants do
     |> cast(attrs, [:shitty_name, :email, :madness_key_hash])
     |> validate_required([:shitty_name, :email, :madness_key_hash])
     |> validate_length(:shitty_name, min: 3, max: 20)
-    |> validate_format(:email, ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/)
+    |> validate_format(:email, ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,15}$/)
     |> unique_constraint(:email)
   end
 

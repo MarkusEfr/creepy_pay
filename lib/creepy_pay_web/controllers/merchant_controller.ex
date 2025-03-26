@@ -41,10 +41,11 @@ defmodule CreepyPayWeb.MerchantController do
   @doc "Merchant login and JWT generation"
   def login(conn, %{"identifier" => identifier, "madness_key" => madness_key}) do
     Logger.info("[DEBUG] identifier: #{identifier}, madness_key: #{madness_key}")
+
     with {:ok, merchant} <-
-           Merchants.authenticate_merchant(identifier, madness_key) |> IO.inspect(label: "[DEBUG] Merchant"),
+           Merchants.authenticate_merchant(identifier, madness_key),
          {:ok, token, _claims} <-
-           Guardian.encode_and_sign(merchant) |> IO.inspect(label: "[DEBUG] Token") do
+           Guardian.encode_and_sign(merchant) do
       json(conn, %{token: token, merchant: merchant})
     else
       {:error, _} -> json(conn, %{error: "Invalid credentials"})

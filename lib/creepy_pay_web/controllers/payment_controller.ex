@@ -5,18 +5,16 @@ defmodule CreepyPayWeb.PaymentController do
   def offer_blood_oath(conn, %{"amount_wei" => amount}) do
     %CreepyPay.Merchants{madness_key_hash: madness_key_hash} =
       Guardian.Plug.current_resource(conn)
-      |> IO.inspect(label: "[DEBUG] Merchant")
 
     with {:ok, %{payment_metacore: payment_metacore}} <-
            StealthPay.generate_payment_request(%{
-             amount: amount
+             amount: amount,
+             madness_key_hash: madness_key_hash
            }),
          {:ok, payment_data} <-
            StealthPay.process_payment(%{
-             madness_key_hash: madness_key_hash,
              payment_metacore: payment_metacore
            }) do
-      Payments.update_payment_status(payment_metacore, "")
       json(conn, %{status: "success", payment: payment_data})
     else
       {:error, reason} ->
@@ -24,7 +22,9 @@ defmodule CreepyPayWeb.PaymentController do
         |> put_status(:unprocessable_entity)
         |> json(%{status: "failed", reason: reason})
 
-      _ ->
+      result ->
+        IO.inspect(result, label: "[DEBUG] offer_blood_oath")
+
         conn
         |> put_status(:bad_request)
         |> json(%{status: "failed", reason: "Unexpected error"})
@@ -32,12 +32,12 @@ defmodule CreepyPayWeb.PaymentController do
   end
 
   def unleash_damnation(conn, %{
-        "payment_metacore" => payment_metacore,
+        "madness_key" => madness_key,
         "recipient" => recipient
       }) do
-    with {:ok, _payment} <- Payments.get_payment(payment_metacore),
-         :ok <- StealthPay.release_payment(payment_metacore, recipient) do
-      Payments.update_payment_status(payment_metacore, "claimed")
+    with :ok <- StealthPay.release_payment(madness_key, recipient),
+         :ok <-
+           Payments.update_payment_status(madness_key, "released") do
       json(conn, %{status: "released"})
     else
       {:error, reason} ->

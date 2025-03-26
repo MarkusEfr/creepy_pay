@@ -26,6 +26,31 @@
         "type": "error"
     },
     {
+        "inputs": [],
+        "name": "obliterateVault",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "infernalMark",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "traceId",
+                "type": "uint256"
+            }
+        ],
+        "name": "offerBloodOath",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -59,7 +84,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "to",
+                "name": "recipient",
                 "type": "address"
             },
             {
@@ -80,6 +105,12 @@
                 "internalType": "bytes32",
                 "name": "infernalMark",
                 "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "traceId",
+                "type": "uint256"
             },
             {
                 "indexed": false,
@@ -112,61 +143,9 @@
     },
     {
         "inputs": [],
-        "name": "obliterateVault",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "infernalMark",
-                "type": "bytes32"
-            }
-        ],
-        "name": "offerBloodOath",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "owner",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "renounceOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "infernalMark",
-                "type": "bytes32"
-            }
-        ],
-        "name": "scryInfernalBalance",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -203,5 +182,61 @@
     {
         "stateMutability": "payable",
         "type": "receive"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "infernalMark",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "traceId",
+                "type": "uint256"
+            }
+        ],
+        "name": "inspectTrace",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "infernalMark",
+                "type": "bytes32"
+            }
+        ],
+        "name": "scryInfernalBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ]

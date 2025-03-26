@@ -3,9 +3,10 @@ defmodule CreepyPay.Repo.Migrations.CreatePaymentsTable do
 
   def change do
     create table(:payments) do
-      add :payment_metacore, :binary, primary_key: true
-      add :amount, :string, null: false
-      add :status, :string, default: "pending", null: false
+      add(:payment_metacore, :string, primary_key: true)
+      add(:madness_key_hash, :string, null: false)
+      add(:amount, :string, null: false)
+      add(:status, :string, default: "pending", null: false)
 
       timestamps()
     end
