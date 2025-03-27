@@ -101,3 +101,80 @@ body {
 .cp-btn:hover {
     background: #fcd34d;
 }
+
+body {
+    background-color: #0a0a0a;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 2rem;
+    color: #eee;
+}
+
+.table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    background: #111;
+    border: 1px solid #2c2c2c;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 0 20px rgba(0, 255, 170, 0.05);
+}
+
+.payment-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #0f0f0f;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.payment-table thead {
+    background-color: #1b1b1b;
+    color: #999;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.payment-table th,
+.payment-table td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid #202020;
+    white-space: nowrap;
+}
+
+.payment-table tbody tr:hover {
+    background-color: #181818;
+    transition: background 0.2s ease-in-out;
+}
+
+.mono {
+    font-family: monospace;
+    color: #9ae69e;
+}
+
+.hash {
+    font-size: 0.75rem;
+    color: #bbb;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.status.confirmed {
+    background-color: #2f8f2f;
+}
+
+.status.pending {
+    background-color: #a67c00;
+}

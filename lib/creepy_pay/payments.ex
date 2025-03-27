@@ -1,6 +1,8 @@
 defmodule CreepyPay.Payments do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
+
   alias CreepyPay.Repo
 
   @primary_key {:payment_metacore, :string, autogenerate: false}
@@ -102,5 +104,15 @@ defmodule CreepyPay.Payments do
       error ->
         error
     end
+  end
+
+  def list_by_madness_key_hash(madness_key_hash) do
+    query =
+      from(p in __MODULE__,
+        where: p.madness_key_hash == ^madness_key_hash,
+        order_by: [desc: p.inserted_at]
+      )
+
+    Repo.all(query)
   end
 end
