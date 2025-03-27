@@ -2,10 +2,15 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "topbar"
 import SendTx from "./hooks/send_tx.js"
+import DismissBox from "./hooks/dismiss_box"
+
 
 let Hooks = {
     SendTx
 }
+
+Hooks.SendTx = SendTx
+Hooks.DismissBox = DismissBox
 
 let csrfToken = document
     .querySelector("meta[name='csrf-token']")

@@ -4,8 +4,6 @@ defmodule CreepyPay.Merchants do
   alias CreepyPay.Repo
   require Logger
 
-  @aes_vector <<2::128>>
-
   @primary_key {:id, :id, autogenerate: true}
   @derive {Jason.Encoder, only: [:shitty_name, :email, :inserted_at]}
   schema "merchants" do
@@ -33,21 +31,27 @@ defmodule CreepyPay.Merchants do
         "email" => email,
         "madness_key" => madness_key
       }) do
-    key_cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
-    madness_key_encrypted = :crypto.crypto_update(key_cipher, madness_key)
+    if byte_size(madness_key) != 32 do
+      {:error, "madness_key must be exactly 32 bytes"}
+    else
+      # Use HMAC-SHA256: madness_key (secret), email (message)
+      madness_key_hash =
+        :crypto.mac(:hmac, :sha256, madness_key, email)
+        |> Base.encode32(padding: false)
 
-    merchant = %{
-      shitty_name: shitty_name,
-      email: email,
-      madness_key_hash: madness_key_encrypted |> Base.encode32(padding: false)
-    }
+      merchant = %{
+        shitty_name: shitty_name,
+        email: email,
+        madness_key_hash: madness_key_hash
+      }
 
-    case changeset(%__MODULE__{}, merchant) |> Repo.insert() do
-      {:ok, merchant} ->
-        {:ok, merchant}
+      case changeset(%__MODULE__{}, merchant) |> Repo.insert() do
+        {:ok, merchant} ->
+          {:ok, merchant}
 
-      {:error, changeset} ->
-        {:error, changeset.errors |> Enum.map(fn {k, {v, _}} -> "#{k}: #{v}" end)}
+        {:error, changeset} ->
+          {:error, changeset.errors |> Enum.map(fn {k, {v, _}} -> "#{k}: #{v}" end)}
+      end
     end
   end
 
@@ -64,11 +68,12 @@ defmodule CreepyPay.Merchants do
         )
 
       case Repo.one(query) do
-        %__MODULE__{madness_key_hash: encoded_hash} = merchant ->
-          cipher = :crypto.crypto_init(:aes_256_ctr, madness_key, @aes_vector, true)
-          encrypted = :crypto.crypto_update(cipher, madness_key)
+        %__MODULE__{email: email, madness_key_hash: stored_hash} = merchant ->
+          calculated_hash =
+            :crypto.mac(:hmac, :sha256, madness_key, email)
+            |> Base.encode32(padding: false)
 
-          if Base.encode32(encrypted, padding: false) == encoded_hash do
+          if calculated_hash == stored_hash do
             {:ok, merchant}
           else
             {:error, "Invalid credentials"}

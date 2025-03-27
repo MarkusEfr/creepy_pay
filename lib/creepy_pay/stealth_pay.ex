@@ -5,7 +5,6 @@ defmodule CreepyPay.StealthPay do
 
   @node_script "assets/js/payment_contractor.mjs"
   @default_data "0x"
-  @default_trace "0x"
 
   def generate_payment_request(%{amount: amount_wei, madness_key_hash: madness_key_hash}) do
     CreepyPay.Payments.store_payment(%{
@@ -15,21 +14,23 @@ defmodule CreepyPay.StealthPay do
   end
 
   def release_payment(%{madness_key: madness_key, recipient: recipient}) do
-    case call_node(
-           "unleashDamnation",
-           [
-             hash_hex(madness_key),
-             recipient,
-             @default_data,
-             @default_trace,
-             "0x"
-           ]
-         ) do
+    key_hash_hex = hash_hex(madness_key)
+    trace_id = payment_metacore_to_integer(madness_key)
+
+    Logger.info("Processing payment trace_id=#{trace_id} and key #{key_hash_hex} to #{recipient}")
+
+    case call_node("releasePayment", [key_hash_hex, recipient, inspect(trace_id), @default_data]) do
       {result, 0} ->
-        {:ok, Jason.decode!(result)}
+        case safe_decode(result) do
+          {:ok, decoded} -> {:ok, decoded}
+          err -> err
+        end
 
       {result, 1} ->
-        {:error, Jason.decode!(result)}
+        case safe_decode(result) do
+          {:ok, decoded} -> {:error, decoded["error"] || "Unknown reason"}
+          err -> err
+        end
     end
   end
 
@@ -38,15 +39,20 @@ defmodule CreepyPay.StealthPay do
            validate_payment_waiting_invoke(%{"payment_metacore" => metacore}),
          trace_id <- payment_metacore_to_integer(metacore),
          contract <- get_payment_processor(),
+         key_hash_hex <- hash_hex(key_hash),
          {result, 0} <-
            call_node("offerBloodOath", [
-             hash_hex(key_hash),
+             key_hash_hex,
              contract,
              inspect(trace_id),
              amount_wei
            ]),
-         {:ok, %{"data" => data, "link" => eth_link, "value" => value}} <- Jason.decode(result),
+         {:ok, %{"data" => data, "link" => eth_link, "value" => value}} <- safe_decode(result),
          {:ok, qr_code} <- generate_qr_code(eth_link) do
+      Logger.info(
+        "✅ Payment prepared for trace_id: #{trace_id}, amount: #{amount_wei}, with key_hash_hex: #{key_hash_hex}"
+      )
+
       deeplinks = build_deeplinks(to: contract, value: value, data: data)
 
       {:ok,
@@ -58,17 +64,22 @@ defmodule CreepyPay.StealthPay do
          entity: payment
        }}
     else
-      {reason, 1} ->
-        %{"reason" => reason} =
-          Jason.decode!(reason) |> IO.inspect(label: "process_payment error")
+      {error_result, 1} ->
+        with {:ok, decoded} <- safe_decode(error_result),
+             reason <- decoded["error"] || decoded["reason"] || "Unknown failure" do
+          Logger.error("❌ Payment processing failed: #{reason}")
+          {:error, reason}
+        else
+          _ -> {:error, "Unrecognized failure"}
+        end
 
-        {:error, reason}
-
-      {:error, decode_err} ->
-        {:error, "JSON decode failed: #{inspect(decode_err)}"}
+      {:error, %Jason.DecodeError{} = decode_err} ->
+        Logger.error("❌ Failed to decode JSON: #{inspect(decode_err)}")
+        {:error, "Decode error"}
 
       result ->
-        {:error, "Unexpected return: #{inspect(result)}"}
+        Logger.error("❌ Unexpected process result: #{inspect(result)}")
+        {:error, "Unexpected error: #{inspect(result)}"}
     end
   end
 
@@ -114,6 +125,15 @@ defmodule CreepyPay.StealthPay do
     str
     |> String.replace(~r/[-0x]/, "")
     |> String.downcase()
+  end
+
+  defp safe_decode(result) do
+    result
+    |> String.trim()
+    |> case do
+      "" -> {:error, "Empty result from Node"}
+      body -> Jason.decode(body)
+    end
   end
 
   defp generate_qr_code(link) do
