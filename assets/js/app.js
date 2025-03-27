@@ -8,6 +8,17 @@ import DismissBox from "./hooks/dismiss_box"
 let Hooks = { SendTx, DismissBox }
 Hooks.SendTx = SendTx
 Hooks.DismissBox = DismissBox
+Hooks.CopyLink = {
+    mounted() {
+        this.el.addEventListener("click", () => {
+            const core = this.el.getAttribute("phx-value-core");
+            const fullLink = `${window.location.origin}/pay/${core}`;
+            navigator.clipboard.writeText(fullLink);
+            this.el.innerText = "✅";
+            setTimeout(() => (this.el.innerText = "🩸"), 1200);
+        });
+    }
+};
 
 let csrfToken = document
     .querySelector("meta[name='csrf-token']")
