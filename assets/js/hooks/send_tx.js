@@ -6,6 +6,10 @@ const SendTx = {
 
         button.addEventListener("click", async () => {
             try {
+                if (button) {
+                    button.disabled = true
+                    button.innerText = "⏳ Sending..."
+                }
                 const paymentRaw = this.el.dataset.payment
                 const to = this.el.dataset.contract
 
@@ -30,13 +34,14 @@ const SendTx = {
                     const gasEstimate = await signer.estimateGas(tx)
                     tx.gasLimit = gasEstimate
                 } catch (err) {
-                    console.warn("⚠️ estimateGas failed, fallback to hardcoded gas")
-                    tx.gasLimit = ethers.toBigInt("100000")
+                    console.warn("⚠️ estimateGas failed, using fallback")
+                    tx.gasLimit = ethers.toBigInt("10000")
                 }
 
                 const sentTx = await signer.sendTransaction(tx)
+                const receipt = await sentTx.wait()
 
-                this.pushEvent("tx_sent", { tx_hash: sentTx.hash })
+                this.pushEvent("tx_sent", { receipt })
 
             } catch (err) {
                 const fallbackReason =
@@ -48,6 +53,11 @@ const SendTx = {
                 this.pushEvent("tx_failed", {
                     reason: fallbackReason
                 })
+
+                if (button) {
+                    button.disabled = false
+                    button.innerText = "🧾 Confirm Payment"
+                }
             }
         })
     }

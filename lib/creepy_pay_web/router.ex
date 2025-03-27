@@ -17,8 +17,8 @@ defmodule CreepyPayWeb.Router do
 
   scope "/pay", CreepyPayWeb do
     pipe_through(:browser)
-
     live("/:payment_metacore", Live.Payment, :index)
+    match(:*, "/*path", FallbackController, :not_found)
   end
 
   pipeline :auth do

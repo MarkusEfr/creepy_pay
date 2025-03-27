@@ -40,7 +40,7 @@ defmodule CreepyPay.Payments do
   @doc """
   Updates any field(s) of a payment given its payment_metacore and a map of updates.
   """
-  def update_payment(%{payment_metacore: payment_metacore} = payment, %{} = updates) do
+  def update_payment(%{payment_metacore: _payment_metacore} = payment, %{} = updates) do
     updated_payment =
       payment
       |> changeset(updates)

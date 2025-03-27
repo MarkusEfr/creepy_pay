@@ -35,7 +35,7 @@ defmodule CreepyPay.StealthPay do
   end
 
   def process_payment(%{payment_metacore: metacore}) do
-    with {:ok, %{amount: amount_wei, madness_key_hash: key_hash} = payment} <-
+    with {:ok, %{amount: amount_wei, madness_key_hash: key_hash} = _payment} <-
            validate_payment_waiting_invoke(%{"payment_metacore" => metacore}),
          trace_id <- payment_metacore_to_integer(metacore),
          contract <- get_payment_processor(),
@@ -62,7 +62,7 @@ defmodule CreepyPay.StealthPay do
         deeplinks: deeplinks
       }
 
-      {:ok, %CreepyPay.Payments{} = payment} =
+      {:ok, %CreepyPay.Payments{}} =
         CreepyPay.Payments.update_invoice_details(metacore, invoice_details)
     else
       {error_result, 1} ->
