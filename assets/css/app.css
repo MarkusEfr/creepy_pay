@@ -1,174 +1,103 @@
-.cp-mobile-wrapper {
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #0b0b0d, #1a1a1e);
+    color: #e0e0e0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    line-height: 1.6;
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    min-height: 100vh;
-    background: #0d0d0d;
-    padding: 1rem;
+    height: 100vh;
 }
 
-.cp-invoice-card {
-    /* roughly 2/5 of a 1080px screen */
-    background: #1a1a1a;
-    color: #f3f3f3;
-    padding: 1.5rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-    font-family: 'Inter', sans-serif;
+.cp-invoice-wrapper {
+    background: radial-gradient(circle at center, #191919 0%, #0f0f0f 100%);
+    border: 1px solid #2c2c2c;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    padding: 3rem 2.5rem;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
 }
 
 .cp-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.cp-icon {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 0.5rem;
-}
-
-.cp-title {
-    font-size: 1.4rem;
-    color: #00ff99;
-    font-weight: bold;
-    font-family: 'Creepster', cursive;
-}
-
-.cp-info-group {
-    margin-bottom: 1.5rem;
-}
-
-.cp-info-group label {
-    font-size: 0.8rem;
-    color: #cccccc;
-    display: block;
-    margin-top: 1rem;
-}
-
-.cp-value {
-    background: #2e2e2e;
-    padding: 0.75rem;
-    border-radius: 8px;
-    font-family: monospace;
-    word-break: break-all;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-    color: #e0e0e0;
-}
-
-.cp-status {
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 6px;
-    display: inline-block;
-    margin-top: 0.25rem;
-}
-
-.cp-status-pending {
-    background: #ffe58f;
-    color: #665c00;
-}
-
-.cp-status-released {
-    background: #b7eb8f;
-    color: #135200;
-}
-
-.cp-actions {
-    text-align: center;
-}
-
-.cp-btn {
-    background: #00cc88;
-    color: #fff;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.cp-btn:hover {
-    background: #00a36c;
-}
-
-.error-box {
-    position: fixed;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-
-    background-color: #fee;
-    color: #a00;
-    border: 1px solid #f99;
-    padding: 1rem 2rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.close-error {
-    position: absolute;
-    top: 0.3rem;
-    right: 0.5rem;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.error-box {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-.error-box.fade-out {
-    opacity: 0;
-}
-
-.cp-404-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: #0d0d0d;
-    color: #eee;
-    text-align: center;
-}
-
-.cp-404-box {
-    max-width: 480px;
-    padding: 2rem;
-    border: 1px solid #333;
-    border-radius: 12px;
-    background-color: #1a1a1a;
-    box-shadow: 0 0 12px rgba(255, 0, 100, 0.2);
-}
-
-.cp-404-title {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #ff5599;
-}
-
-.cp-404-message {
-    font-size: 1.1rem;
-    line-height: 1.6;
     margin-bottom: 2rem;
 }
 
-.cp-404-home-btn {
+.cp-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #f1f1f1;
+    text-shadow: 0 0 5px #333;
+    letter-spacing: 1px;
+}
+
+.cp-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 4px #888);
+}
+
+.cp-info-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #a0a0a0;
+    margin-top: 1.4rem;
+    letter-spacing: 0.5px;
+}
+
+.cp-value {
+    background: #121212;
+    padding: 0.8rem 1rem;
+    margin-top: 0.3rem;
+    color: #fefefe;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px #000;
+    word-break: break-word;
+}
+
+.cp-status {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background: #ff0080;
+    margin-top: 0.7rem;
+    padding: 0.5rem 1rem;
+    background-color: #444;
     color: #fff;
     border-radius: 6px;
     font-weight: bold;
-    text-decoration: none;
-    transition: background 0.2s ease;
+    text-transform: uppercase;
+    box-shadow: 0 0 8px #222;
 }
 
-.cp-404-home-btn:hover {
-    background: #cc0066;
+.cp-status-tx_confirmed {
+    background: #00cc88;
+    color: #111;
+}
+
+.cp-status-tx_failed {
+    background: #cc0033;
+}
+
+.cp-actions {
+    margin-top: 2rem;
+}
+
+.cp-btn {
+    padding: 1rem 2rem;
+    background: #ffe08a;
+    color: #000;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 0 15px #ffd70033;
+}
+
+.cp-btn:hover {
+    background: #fcd34d;
 }

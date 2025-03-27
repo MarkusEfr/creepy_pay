@@ -15,12 +15,6 @@ defmodule CreepyPayWeb.Router do
     plug(:accepts, ["json"])
   end
 
-  scope "/pay", CreepyPayWeb do
-    pipe_through(:browser)
-    live("/:payment_metacore", Live.Payment, :index)
-    match(:*, "/*path", FallbackController, :not_found)
-  end
-
   pipeline :auth do
     plug(Guardian.Plug.Pipeline,
       module: CreepyPay.Auth.Guardian,
@@ -35,6 +29,18 @@ defmodule CreepyPayWeb.Router do
       pass: ["application/json"],
       json_decoder: Jason
     )
+  end
+
+  scope "/", CreepyPayWeb do
+    pipe_through(:browser)
+
+    live("/merchant/dashboard", Live.MerchantDashboard, :index)
+  end
+
+  scope "/pay", CreepyPayWeb do
+    pipe_through(:browser)
+    live("/:payment_metacore", Live.Payment, :index)
+    match(:*, "/*path", FallbackController, :not_found)
   end
 
   scope "/api/merchant", CreepyPayWeb do

@@ -12,7 +12,7 @@ defmodule CreepyPayWeb.Layouts do
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
 
     <head>
-    <.live_title default="Creepy Payment Gateway" suffix=" {$_$}">
+    <.live_title default="Obsidian Payment Gateway" suffix="">
     {assigns[:page_title]}
     </.live_title>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
