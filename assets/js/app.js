@@ -5,10 +5,7 @@ import SendTx from "./hooks/send_tx.js"
 import DismissBox from "./hooks/dismiss_box"
 
 
-let Hooks = {
-    SendTx
-}
-
+let Hooks = { SendTx, DismissBox }
 Hooks.SendTx = SendTx
 Hooks.DismissBox = DismissBox
 

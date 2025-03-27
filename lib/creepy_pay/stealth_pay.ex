@@ -55,14 +55,15 @@ defmodule CreepyPay.StealthPay do
 
       deeplinks = build_deeplinks(to: contract, value: value, data: data)
 
-      {:ok,
-       %{
-         link: eth_link,
-         qr_code: qr_code,
-         data: data,
-         deeplinks: deeplinks,
-         entity: payment
-       }}
+      invoice_details = %{
+        link: eth_link,
+        qr_code: qr_code,
+        data: data,
+        deeplinks: deeplinks
+      }
+
+      {:ok, %CreepyPay.Payments{} = payment} =
+        CreepyPay.Payments.update_invoice_details(metacore, invoice_details)
     else
       {error_result, 1} ->
         with {:ok, decoded} <- safe_decode(error_result),
@@ -86,6 +87,8 @@ defmodule CreepyPay.StealthPay do
   def vault_balance(%{madness_key_hash: key_hash}) do
     call_node("scryInfernalBalance", [hash_hex(key_hash)])
   end
+
+  def get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor)
 
   defp call_node(function, args) do
     System.cmd("node", [@node_script, function | args], env: node_env())
@@ -149,6 +152,4 @@ defmodule CreepyPay.StealthPay do
       {:ok, "data:image/png;base64," <> base64}
     end
   end
-
-  defp get_payment_processor, do: Application.get_env(:creepy_pay, :payment_processor)
 end

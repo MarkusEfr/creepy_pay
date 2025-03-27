@@ -9,7 +9,7 @@ defmodule CreepyPay.Validates.PaymentFlow do
       {:ok, %{status: "pending"} = payment} ->
         {:ok, payment}
 
-      _ ->
+      another  when is_map(another) ->
         {:error, "Payment already processed"}
     end
   end

@@ -7,6 +7,7 @@ defmodule CreepyPay.Repo.Migrations.CreatePaymentsTable do
       add(:madness_key_hash, :string, null: false)
       add(:amount, :string, null: false)
       add(:status, :string, default: "pending", null: false)
+      add(:invoice_details, :map, default: %{}, null: false)
 
       timestamps()
     end

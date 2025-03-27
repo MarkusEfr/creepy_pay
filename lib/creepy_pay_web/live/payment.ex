@@ -1,29 +1,23 @@
 defmodule CreepyPayWeb.Live.Payment do
-  @moduledoc """
-  LiveView for payment processing.
-  """
   use CreepyPayWeb, :live_view
 
   alias CreepyPay.Payments
+  alias CreepyPay.StealthPay
 
-  def mount(%{"payment_metacore" => payment_metacore} = _params, _session, socket) do
-    {:ok, payment} = Payments.get_payment(payment_metacore)
-
-    socket =
-      socket
-      |> assign(:payment, payment)
-      |> assign(:payment_metacore, payment_metacore)
-      |> assign(:payment_contract, Application.get_env(:creepy_pay, :payment_processor))
-      |> assign(:payment_data, payment_metacore)
-      |> assign(:tx_error, nil)
-
-    {:ok, socket}
+  def mount(%{"payment_metacore" => payment_metacore}, _session, socket) do
+    with {:ok, payment} <- Payments.get_payment(payment_metacore) do
+      {:ok,
+       assign(socket,
+         payment: payment,
+         payment_contract: StealthPay.get_payment_processor(),
+         tx_error: nil
+       )}
+    end
   end
 
   def render(assigns) do
     ~H"""
-    <div
-      class="cp-mobile-wrapper" >
+    <div class="cp-mobile-wrapper">
       <div class="cp-invoice-card">
         <div class="cp-header">
           <h1 class="cp-title">CreepyPay Invoice</h1>
@@ -31,7 +25,7 @@ defmodule CreepyPayWeb.Live.Payment do
 
         <div class="cp-info-group">
           <label>💀 Metacore</label>
-          <p class="cp-value"><%= @payment_metacore %></p>
+          <p class="cp-value"><%= @payment.payment_metacore %></p>
 
           <label>💰 Amount</label>
           <p class="cp-value"><%= @payment.amount %> wei</p>
@@ -42,38 +36,44 @@ defmodule CreepyPayWeb.Live.Payment do
           <label>📦 Status</label>
           <p class={"cp-status cp-status-#{@payment.status}"}><%= @payment.status %></p>
         </div>
+
         <div id="send-tx"
           phx-hook="SendTx"
-          data-to={@payment_contract}
-          data-value={@payment.amount}
-          data-data={@payment_data}
+          data-contract={@payment_contract}
+          data-payment={Jason.encode!(@payment)}
           class="cp-actions">
-          <button class="cp-btn">🧾 Confirm Payment</button>
+          <button :if={@payment.status == "pending"} class="cp-btn">🧾 Confirm Payment</button>
         </div>
+
         <%= if @tx_error do %>
-         <div id="error-box" class="error-box" phx-hook="DismissBox">
-          <span class="close-error" style="float:right;cursor:pointer;font-weight:bold;">✖</span>
-          <p>⚠️ <%= @tx_error %></p>
+          <div id="error-box" class="error-box" phx-hook="DismissBox">
+            <span class="close-error" onclick="this.parentNode.remove()">✖</span>
+            <p>⚠️ <%= @tx_error %></p>
           </div>
         <% end %>
-
-
       </div>
     </div>
     """
   end
 
   def handle_event("tx_failed", %{"reason" => reason}, socket) do
-    IO.puts("TX failed: #{reason}")
-
     {:noreply,
      socket
-     |> put_flash(:error, "Transaction failed: #{reason}")
      |> assign(:tx_error, reason)}
   end
 
-  def handle_event("tx_sent", %{"tx_hash" => tx_hash}, socket) do
-    IO.puts("User sent TX: #{tx_hash}")
-    {:noreply, assign(socket, :tx_status, "Transaction sent: #{tx_hash}")}
+  def handle_event(
+        "tx_sent",
+        %{"tx_hash" => tx_hash},
+        %{assigns: %{payment: %{invoice_details: invoice_details} = payment}} = socket
+      ) do
+    updates = %{
+      status: "transaction_sent",
+      invoice_details: invoice_details |> Map.put(:tx_hash, tx_hash)
+    }
+
+    Payments.update_payment(payment, updates)
+
+    {:noreply, socket |> assign(:payment, payment |> Map.merge(updates))}
   end
 end

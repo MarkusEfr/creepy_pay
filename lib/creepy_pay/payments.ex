@@ -10,12 +10,14 @@ defmodule CreepyPay.Payments do
              :madness_key_hash,
              :amount,
              :status,
+             :invoice_details,
              :inserted_at
            ]}
   schema "payments" do
     field(:madness_key_hash, :string)
     field(:amount, :string)
     field(:status, :string, default: "pending")
+    field(:invoice_details, :map, default: %{})
 
     timestamps()
   end
@@ -25,8 +27,29 @@ defmodule CreepyPay.Payments do
   """
   def changeset(payment, attrs) do
     payment
-    |> cast(attrs, [:payment_metacore, :madness_key_hash, :amount, :status])
-    |> validate_required([:payment_metacore, :madness_key_hash, :amount, :status])
+    |> cast(attrs, [:payment_metacore, :madness_key_hash, :amount, :status, :invoice_details])
+    |> validate_required([
+      :payment_metacore,
+      :madness_key_hash,
+      :amount,
+      :status,
+      :invoice_details
+    ])
+  end
+
+  @doc """
+  Updates any field(s) of a payment given its payment_metacore and a map of updates.
+  """
+  def update_payment(%{payment_metacore: payment_metacore} = payment, %{} = updates) do
+    updated_payment =
+      payment
+      |> changeset(updates)
+      |> Repo.update()
+
+    case updated_payment do
+      {:ok, payment} -> {:ok, payment}
+      error -> error
+    end
   end
 
   @doc """
@@ -59,6 +82,21 @@ defmodule CreepyPay.Payments do
       {:ok, payment} ->
         payment
         |> changeset(%{status: new_status})
+        |> Repo.update()
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Update the invoice details.
+  """
+  def update_invoice_details(payment_metacore, invoice_details) do
+    case get_payment(payment_metacore) do
+      {:ok, payment} ->
+        payment
+        |> changeset(%{invoice_details: invoice_details})
         |> Repo.update()
 
       error ->
