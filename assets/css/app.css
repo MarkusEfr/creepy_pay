@@ -2,179 +2,298 @@ html,
 body {
     margin: 0;
     padding: 0;
-    background: linear-gradient(to bottom, #0b0b0d, #1a1a1e);
-    color: #e0e0e0;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 16px;
-    line-height: 1.6;
+    height: 100vh;
+    background: linear-gradient(to bottom, #f9fdfa, #edf8f1);
+    font-family: 'JetBrains Mono', monospace;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    color: #111;
 }
 
 .cp-invoice-wrapper {
-    background: radial-gradient(circle at center, #191919 0%, #0f0f0f 100%);
-    border: 1px solid #2c2c2c;
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-    padding: 3rem 2.5rem;
+    background: #ffffff;
+    padding: 4rem 3rem;
     max-width: 520px;
+    min-height: 640px;
     width: 100%;
-    text-align: center;
-}
-
-.cp-header {
-    margin-bottom: 2rem;
+    box-shadow: 0 15px 40px rgba(0, 128, 96, 0.08);
+    border-radius: 14px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .cp-title {
+    font-family: 'Georgia', serif;
     font-size: 2rem;
-    font-weight: bold;
-    color: #f1f1f1;
-    text-shadow: 0 0 5px #333;
-    letter-spacing: 1px;
+    font-weight: 700;
+    color: #025c3a;
+    margin-bottom: 1.25rem;
+    border-bottom: 2px solid #00cc88;
+    padding-bottom: 0.5rem;
 }
 
-.cp-icon {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 4px #888);
-}
-
-.cp-info-group label {
-    display: block;
+.cp-metadata {
     font-size: 0.9rem;
-    color: #a0a0a0;
-    margin-top: 1.4rem;
-    letter-spacing: 0.5px;
+    margin-bottom: 2rem;
+    color: #444;
+    line-height: 1.5;
 }
 
-.cp-value {
-    background: #121212;
-    padding: 0.8rem 1rem;
-    margin-top: 0.3rem;
-    color: #fefefe;
-    border-radius: 8px;
-    box-shadow: inset 0 0 5px #000;
+.cp-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem 0;
+    font-size: 0.96rem;
+    border-bottom: 1px dashed #ddd;
+}
+
+.cp-info-row label {
+    font-weight: 600;
+    color: #008060;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.cp-info-row .value {
+    text-align: right;
+    font-weight: 500;
+    max-width: 60%;
+    color: #222;
     word-break: break-word;
 }
 
 .cp-status {
-    display: inline-block;
-    margin-top: 0.7rem;
-    padding: 0.5rem 1rem;
-    background-color: #444;
-    color: #fff;
-    border-radius: 6px;
+    text-align: center;
     font-weight: bold;
+    padding: 1.5rem 0 0.5rem;
+    color: #00cc88;
+    font-size: 1rem;
     text-transform: uppercase;
-    box-shadow: 0 0 8px #222;
-}
-
-.cp-status-tx_confirmed {
-    background: #00cc88;
-    color: #111;
-}
-
-.cp-status-tx_failed {
-    background: #cc0033;
+    letter-spacing: 0.8px;
 }
 
 .cp-actions {
-    margin-top: 2rem;
+    margin-top: 2.5rem;
+    text-align: center;
 }
 
 .cp-btn {
-    padding: 1rem 2rem;
-    background: #ffe08a;
-    color: #000;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
+    padding: 0.9rem 2.4rem;
+    background: linear-gradient(to right, #00cc88, #bfffe0);
+    color: #0e2f24;
+    font-weight: 600;
+    font-size: 1rem;
     border: none;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 0 15px #ffd70033;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0, 128, 96, 0.3);
+    transition: all 0.25s ease;
 }
 
 .cp-btn:hover {
-    background: #fcd34d;
+    background: linear-gradient(to right, #00aa77, #eafff4);
+    box-shadow: 0 4px 24px rgba(0, 128, 96, 0.45);
 }
 
-body {
-    background-color: #0a0a0a;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 2rem;
-    color: #eee;
-}
-
-.table-container {
-    max-width: 100%;
-    overflow-x: auto;
-    background: #111;
-    border: 1px solid #2c2c2c;
-    border-radius: 12px;
+.error-box {
+    background-color: #ffeeee;
+    border: 1px solid #ff4d4d;
     padding: 1rem;
-    box-shadow: 0 0 20px rgba(0, 255, 170, 0.05);
+    margin-top: 2rem;
+    border-radius: 10px;
+    color: #aa0000;
+    font-weight: 500;
+    position: relative;
 }
 
-.payment-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #0f0f0f;
-    border-radius: 12px;
-    overflow: hidden;
+.close-error {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    cursor: pointer;
+    color: #d33;
+    font-size: 1.1rem;
 }
 
-.payment-table thead {
-    background-color: #1b1b1b;
-    color: #999;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    border-bottom: 1px solid #2a2a2a;
-}
-
-.payment-table th,
-.payment-table td {
-    padding: 14px 20px;
-    text-align: left;
-    border-bottom: 1px solid #202020;
+.cp-invoice-wrapper::before {
+    content: "CREEPYPAY";
+    position: absolute;
+    top: 60%;
+    left: 60%;
+    transform: rotate(-18deg);
+    font-size: 4rem;
+    font-weight: 800;
+    color: rgba(0, 100, 80, 0.03);
+    font-family: 'Georgia', serif;
     white-space: nowrap;
+    letter-spacing: 6px;
+    pointer-events: none;
+    user-select: none;
 }
 
-.payment-table tbody tr:hover {
-    background-color: #181818;
-    transition: background 0.2s ease-in-out;
-}
-
-.mono {
-    font-family: monospace;
-    color: #9ae69e;
-}
-
-.hash {
-    font-size: 0.75rem;
-    color: #bbb;
-    font-family: monospace;
-    word-break: break-all;
-}
-
-.status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: bold;
+.cp-section-title {
+    margin-top: 2rem;
+    font-size: 1rem;
+    font-weight: 600;
     text-transform: uppercase;
-    color: #fff;
+    color: #006b4f;
+    border-bottom: 1px solid #d5f9e7;
+    padding-bottom: 0.5rem;
+    letter-spacing: 0.8px;
 }
 
-.status.confirmed {
-    background-color: #2f8f2f;
+.cp-footer-note {
+    font-size: 0.75rem;
+    text-align: center;
+    color: #999;
+    margin-top: 3rem;
+    font-style: italic;
 }
 
-.status.pending {
-    background-color: #a67c00;
+.cp-debug-json {
+    margin-top: 3rem;
+    max-width: 100%;
+    background-color: #f8f8f8;
+    color: #222;
+    padding: 1.2rem 1rem;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 100, 80, 0.08);
+    font-family: monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+    word-break: normal;
+    white-space: pre;
+}
+
+.cp-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.cp-icon-warning {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    border: 2px solid #ffcc99;
+    background-color: #fff8f0;
+    padding: 8px;
+    box-shadow: 0 0 12px rgba(255, 120, 80, 0.2);
+    object-fit: contain;
+}
+
+.cp-title.danger {
+    color: #cc3300;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 0;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.cp-subtext {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 2rem;
+}
+
+.cp-login-wrapper {
+    background: #ffffff;
+    padding: 3.5rem 2.5rem;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 15px 40px rgba(0, 128, 96, 0.08);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: left;
+    position: relative;
+}
+
+.cp-login-wrapper::before {
+    content: "CREEPYPAY";
+    position: absolute;
+    top: 65%;
+    left: 55%;
+    transform: rotate(-10deg);
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(0, 100, 80, 0.04);
+    font-family: 'Georgia', serif;
+    white-space: nowrap;
+    letter-spacing: 4px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.cp-login-title {
+    font-family: 'Georgia', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #025c3a;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #00cc88;
+    padding-bottom: 0.4rem;
+    text-align: center;
+    letter-spacing: 0.6px;
+}
+
+.cp-login-form input[type="text"],
+.cp-login-form input[type="password"] {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.2rem;
+    border-radius: 10px;
+    border: 1px solid #d6f5ea;
+    background-color: #f9fdfa;
+    font-size: 0.95rem;
+    color: #222;
+    box-shadow: inset 0 1px 3px rgba(0, 100, 80, 0.05);
+    transition: border 0.2s ease;
+}
+
+.cp-login-form input:focus {
+    outline: none;
+    border-color: #00cc88;
+    background-color: #ffffff;
+}
+
+.cp-login-submit {
+    padding: 0.85rem 2rem;
+    background: linear-gradient(to right, #00cc88, #bfffe0);
+    color: #003b2e;
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 4px 16px rgba(0, 128, 96, 0.25);
+}
+
+.cp-login-submit:hover {
+    background: linear-gradient(to right, #00aa77, #eafff4);
+    box-shadow: 0 4px 20px rgba(0, 128, 96, 0.35);
+}
+
+.cp-login-error {
+    background-color: #ffeeee;
+    border: 1px solid #ff4d4d;
+    padding: 1rem;
+    margin-top: 1.2rem;
+    border-radius: 10px;
+    color: #aa0000;
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-align: center;
 }

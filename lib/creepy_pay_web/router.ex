@@ -57,7 +57,7 @@ defmodule CreepyPayWeb.Router do
 
     # Payment API
     post("/offer-blood-oath", PaymentController, :offer_blood_oath)
-    post("/release-damnation", PaymentController, :unleash_damnation)
+    post("/unleash-damnation", PaymentController, :unleash_damnation)
     get("/vault-balance", PaymentController, :vault_balance)
 
     # Wallets

@@ -7,6 +7,8 @@ defmodule CreepyPayWeb.Live.Payment do
   def mount(%{"payment_metacore" => payment_metacore}, _session, socket) do
     case Payments.get_payment(payment_metacore) do
       {:ok, payment} ->
+        IO.inspect(payment, label: "Payment")
+
         {:ok,
          assign(socket,
            payment: payment,
@@ -23,36 +25,71 @@ defmodule CreepyPayWeb.Live.Payment do
   def render(assigns) do
     ~H"""
     <%= if @not_found do %>
-      <div class="cp-invoice-wrapper">
-        <div class="cp-header">
-          <img src="/images/icons/warning_cat.png" class="cp-icon" />
-          <h1 class="cp-title">404: Invoice Vanished</h1>
-        </div>
-        <p>This invoice was either devoured by the void or never born.</p>
-        <a href="/" class="cp-btn">Return to Safety</a>
-      </div>
+    <div class="cp-invoice-wrapper not-found">
+    <div class="cp-header">
+    <img src="/images/icons/warning_cat.png" alt="Warning Cat" class="cp-icon-warning" />
+    <h1 class="cp-title danger">404: Invoice Vanished</h1>
+    </div>
+    <p class="cp-subtext">This invoice was either devoured by the void or never born.</p>
+    <a href="/" class="cp-btn">Return to Safety</a>
+    </div>
+
     <% else %>
       <div class="cp-invoice-wrapper">
-        <div class="cp-header">
-          <img src="/images/icons/golden_cat_hat.png" class="cp-icon" />
-          <h1 class="cp-title">Obsidian Invoice</h1>
+        <h1 class="cp-title">Payment Order</h1>
+
+        <div class="cp-metadata">
+          Invoice No.: <%= @payment.payment_metacore %><br/>
+          Issued Date: <%= Date.utc_today() |> to_string() %>
         </div>
 
-        <div class="cp-info-group">
-          <label>Metacore</label>
-          <p class="cp-value"><%= @payment.payment_metacore %></p>
+        <div class="cp-section-title">Payment Summary</div>
 
+        <div class="cp-info-row">
           <label>Amount</label>
-          <p class="cp-value"><%= @payment.amount %> wei</p>
-
-          <label>Madness Key</label>
-          <p class="cp-value"><%= @payment.madness_key_hash %></p>
-
-          <label>Status</label>
-          <p class={"cp-status cp-status-#{String.downcase(@payment.status)}"}>
-            <%= @payment.status %>
-          </p>
+          <div class="value"><%= @payment.amount %> wei</div>
         </div>
+
+        <div class="cp-info-row">
+          <label>Madness Key Hash</label>
+          <div class="value"><%= @payment.madness_key_hash %></div>
+        </div>
+
+        <div class="cp-info-row">
+          <label>Status</label>
+          <div class={"value cp-status cp-status-#{String.downcase(@payment.status)}"}>
+            <%= @payment.status %>
+          </div>
+        </div>
+
+        <%= if @payment.invoice_details["receipt"] do %>
+          <div class="cp-section-title">Ethereum Receipt</div>
+
+          <div class="cp-info-row">
+            <label>Tx Hash</label>
+            <div class="value"><%= @payment.invoice_details["receipt"]["hash"] %></div>
+          </div>
+
+          <div class="cp-info-row">
+            <label>Block Number</label>
+            <div class="value"><%= @payment.invoice_details["receipt"]["blockNumber"] %></div>
+          </div>
+
+          <div class="cp-info-row">
+            <label>From</label>
+            <div class="value"><%= @payment.invoice_details["receipt"]["from"] %></div>
+          </div>
+
+          <div class="cp-info-row">
+            <label>To</label>
+            <div class="value"><%= @payment.invoice_details["receipt"]["to"] %></div>
+          </div>
+
+          <div class="cp-info-row">
+            <label>Gas Used</label>
+            <div class="value"><%= @payment.invoice_details["receipt"]["gasUsed"] %></div>
+          </div>
+        <% end %>
 
         <div id="send-tx"
           phx-hook="SendTx"
@@ -70,6 +107,10 @@ defmodule CreepyPayWeb.Live.Payment do
             <p>⚠️ <%= @tx_error %></p>
           </div>
         <% end %>
+
+        <div class="cp-footer-note">
+          ⬤ This invoice is issued by CreepyPay Corp, verified via on-chain meta.
+        </div>
       </div>
     <% end %>
     """
@@ -81,13 +122,7 @@ defmodule CreepyPayWeb.Live.Payment do
 
   def handle_event(
         "tx_sent",
-        %{
-          "receipt" =>
-            %{
-              "hash" => _tx_hash,
-              "status" => status
-            } = receipt
-        },
+        %{"receipt" => %{"hash" => _tx_hash, "status" => status} = receipt},
         %{assigns: %{payment: payment}} = socket
       ) do
     updates = %{
@@ -96,7 +131,6 @@ defmodule CreepyPayWeb.Live.Payment do
     }
 
     {:ok, payment} = Payments.update_payment(payment, updates)
-
     {:noreply, assign(socket, payment: payment)}
   end
 
