@@ -84,4 +84,11 @@ defmodule CreepyPay.Merchants do
       end
     end
   end
+
+  def get_merchant_by_id(id) do
+    case Repo.get(__MODULE__, id) do
+      nil -> {:error, "Merchant not found"}
+      merchant -> {:ok, merchant}
+    end
+  end
 end

@@ -297,3 +297,76 @@ body {
     font-size: 0.85rem;
     text-align: center;
 }
+
+.cp-dashboard-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.cp-dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.cp-dashboard-title {
+    font-family: 'Georgia', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #025c3a;
+    margin-bottom: 1rem;
+}
+
+.cp-dashboard-metadata {
+    font-size: 0.95rem;
+    color: #444;
+    line-height: 1.5;
+}
+
+.cp-create-payment-form {
+    margin-top: 1.5rem;
+    max-width: 400px;
+}
+
+.cp-payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.cp-payments-table th {
+    background-color: #f0fdf6;
+    color: #008060;
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+.cp-payments-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px dashed #d9f8ec;
+    word-break: break-word;
+}
+
+.cp-expand-details {
+    background-color: #f9fdfa;
+    padding: 1rem;
+    border-left: 4px solid #00cc88;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.cp-expand-qr {
+    margin-top: 1rem;
+}
+
+.cp-expand-qr img {
+    max-width: 180px;
+    border: 1px solid #d6f5ea;
+    border-radius: 10px;
+}
