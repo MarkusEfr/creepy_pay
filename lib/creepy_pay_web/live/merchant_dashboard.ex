@@ -118,7 +118,7 @@ defmodule CreepyPayWeb.Live.MerchantDashboard do
       <form class="cp-login-form" phx-submit="login">
         <input name="identifier" type="text" placeholder="Email or Shitty Name" />
         <input name="madness_key" type="password" placeholder="Madness Key (32 bytes)" />
-        <button type="submit" class="cp-login-submit">Enter the Madness</button>
+        <button type="submit" class="cp-login-submit">Enter Dashboard</button>
       </form>
 
       <%= if @error do %>
@@ -136,6 +136,9 @@ defmodule CreepyPayWeb.Live.MerchantDashboard do
       <header class="cp-dashboard-header">
         <h1 class="cp-dashboard-title">Merchant Dashboard</h1>
         <div class="cp-dashboard-metadata">
+        <div style="margin-top: 1rem;">
+          <button id="merchant-logout" class="cp-btn danger">🚪 Logout</button>
+        </div>
           <strong>Name:</strong> <%= @merchant.shitty_name %><br/>
           <strong>Email:</strong> <%= @merchant.email %><br/>
           <strong>Merchant ID:</strong> <%= @merchant.id %>

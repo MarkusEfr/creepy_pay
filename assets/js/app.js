@@ -21,18 +21,34 @@ Hooks.CopyLink = {
 };
 Hooks.MerchantAuth = {
     mounted() {
-        const token = localStorage.getItem("merchant_token");
+        const token = localStorage.getItem("merchant_token")
         if (token) {
-            this.pushEvent("auth_merchant_with_token", { token });
+            this.pushEvent("auth_merchant_with_token", { token })
         }
 
         this.handleEvent("merchant_login_success", ({ token }) => {
-            localStorage.setItem("merchant_token", token);
-            window.location.href = "/merchant/dashboard";
-        });
-    }
-};
+            localStorage.setItem("merchant_token", token)
+            window.location.href = "/merchant/dashboard"
+        })
 
+        this.setupLogoutListener()
+    },
+
+    updated() {
+        // Called every patch, just in case DOM is updated
+        this.setupLogoutListener()
+    },
+
+    setupLogoutListener() {
+        const logoutBtn = document.getElementById("merchant-logout")
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                localStorage.removeItem("merchant_token")
+                window.location.reload()
+            })
+        }
+    }
+}
 
 let csrfToken = document
     .querySelector("meta[name='csrf-token']")
