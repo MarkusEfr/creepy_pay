@@ -370,3 +370,40 @@ body {
     border: 1px solid #d6f5ea;
     border-radius: 10px;
 }
+
+.cp-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+}
+
+.cp-modal {
+    background: #ffffff;
+    padding: 2rem;
+    max-width: 640px;
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 128, 96, 0.15);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.cp-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #025c3a;
+}
+
+.cp-modal-content {
+    font-size: 0.95rem;
+    color: #222;
+    line-height: 1.6;
+}
